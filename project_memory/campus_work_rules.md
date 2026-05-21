@@ -57,10 +57,11 @@
 
 ### 7.1.1 Skill 分配（派生 Agent 时在 prompt 中要求使用）
 
-**经理 skill（11个）：**（全部现在激活，负责流程管理，不参与代码编写）
+**经理 skill（12个）：**（全部现在激活，负责流程管理，不参与代码编写）
 
 | Skill | 用途 |
 |-------|------|
+| **campus-manager-rules** | **🔒 经理铁律：每次会话必须加载。强制 Skill要求/任务包格式/执行流程** |
 | subagent-driven-development | 每任务派生Agent + 两阶段审查 |
 | dispatching-parallel-agents | 独立任务并行派发 |
 | brainstorming | 需求澄清，设计前强制使用 |

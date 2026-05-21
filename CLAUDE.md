@@ -6,6 +6,7 @@ Claude Code 会话入口。系统地图见 [[PROJECT_HOME]]。
 
 ## 每次开始工作前（必须逐条执行）
 
+0. **加载 campus-manager-rules Skill** ← 🔒 经理铁律，不可跳过
 1. 读 [[PROJECT_HOME]]
 2. 读 [[campus_status|当前状态]]
 3. 读 [[iteration_current|当前迭代]]
