@@ -26,7 +26,5 @@ Thumbs.db
 ~$*
 android/.kotlin/
 .obsidian/
-.agents/
-outputs/
-campus-miniapp-prototype.html
+prototype/campus-miniapp-prototype.html
 .claude/

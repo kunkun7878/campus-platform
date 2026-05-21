@@ -41,7 +41,7 @@
 - "我的"页面保持高信息密度
 
 ## 3. 当前已确认
-- 主原型文件路径：`C:\Users\admin\Desktop\校园聚合平台\campus-miniapp-prototype.html`
+- 主原型文件路径：`C:\Users\admin\Desktop\校园聚合平台\prototype\campus-miniapp-prototype.html`
 - 原型为单文件 HTML + 内联 CSS/JS，通过 `screenConfigs` + `showScreen()` 切换页面
 - 底部导航：首页 / 发布 / 社区 / 消息 / 我的
 

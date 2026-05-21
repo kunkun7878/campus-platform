@@ -1,6 +1,6 @@
 # 校园聚合平台 - 工作规则（协作纪律）
 
-<!-- last_sync: 2026-05-21T19:30 CST -->
+<!-- last_sync: 2026-05-21T20:25 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_rules]] · [[campus_decisions]] · [[campus_status]] · [[campus_conflicts]]
 
