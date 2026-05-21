@@ -29,3 +29,16 @@
 # Coil
 -dontwarn coil.**
 -keep class coil.** { *; }
+
+# ── 项目自身数据类 ──────────────────────────────────────────
+# 保护序列化/反序列化所需的所有 data class（Kotlinx Serialization / Room / Gson）
+-keep class com.campus.platform.data.** { *; }
+-keep class com.campus.platform.model.** { *; }
+-keep class com.campus.platform.entity.** { *; }
+
+# 保留 Kotlin data class 的 componentN / copy / toString（反射用）
+-keepclassmembers class com.campus.platform.** {
+    *** component*();
+    *** copy(...);
+    public java.lang.String toString();
+}

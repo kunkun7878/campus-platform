@@ -7,6 +7,11 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Room schema 导出 — 用于数据库版本迁移的自动化测试
+ksp {
+    arg("room.schemaLocation", "${projectDir}/schemas")
+}
+
 android {
     namespace = "com.campus.platform"
     compileSdk = 35
@@ -98,6 +103,9 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+
+    // Material Design (MDC-Android) — XML 主题防启动闪白
+    implementation(libs.material.android)
 
     // Core
     implementation(libs.androidx.core.ktx)

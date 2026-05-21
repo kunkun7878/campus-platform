@@ -48,7 +48,7 @@
 | [[campus_open_questions\|待确认问题]] | 已闭环 + 待用户确认 + 待推进 |
 | [[campus_conflicts\|规则冲突]] | 冲突记录、影响评估、用户决策 |
 
-### 执行层 — Skills（56个，`.claude/skills/`）
+### 执行层 — Skills（54个，`.claude/skills/`）
 
 **项目管理（2个，经理调用）：**
 | Skill | 用途 |
@@ -56,7 +56,7 @@
 | campus-memory-sync | 记忆文件同步（7个触发节点） |
 | campus-project-guard | 规则冲突检测 |
 
-**Agent 工作 skill（54个）：** 完整分配见 [[campus_work_rules]] §7.1.1。详见 §7.1.1。
+**Agent 工作 skill（52个）：** 完整分配见 [[campus_work_rules]] §7.1.1。详见 §7.1.1。
 
 ---
 

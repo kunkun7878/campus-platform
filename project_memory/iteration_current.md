@@ -33,7 +33,7 @@
 - [x] 配置 Compose + Hilt + Navigation + Retrofit + Room + Coil + DataStore
 - [x] MainActivity 改为 Compose + Hilt
 - [x] 创建 CampusApplication（Hilt入口）
-- [x] Skills 扩充至 55 个（全部安装，具体激活状态见 campus_work_rules.md §7.1.1）
+- [x] Skills 扩充至 54 个（全部安装，具体激活状态见 campus_work_rules.md §7.1.1）
 - [x] 规则文档审查 + 修复12项问题
 - [x] 编译验证（./gradlew assembleDebug）✅
 - [x] git init + .gitignore + 首次 commit → 已推送 GitHub ✅

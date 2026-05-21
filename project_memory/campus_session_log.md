@@ -1,11 +1,33 @@
 # 校园聚合平台 - 会话推进日志
 
-<!-- last_sync: 2026-05-21T19:30 CST -->
+<!-- last_sync: 2026-05-21T22:55 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[iteration_current]]
 > 历史日志已归档到：[[archive/session_log_2026-05]]
 
 ## 2026-05-21
+
+### 22:50 - 规则文件一致性修复闭环
+
+- 经理严格按 campus-manager-rules 流程执行：任务包 → 执行Agent(FIX-001) → 审查Agent打回(3项) → 执行Agent修复 → 审查Agent复审通过
+- 修改7个文件：
+  - campus_work_rules.md：§7.4 禁止项合并(8→11条)、§7.1.1 执行Agent表补入 frontend-design + kotlin-multiplatform-expect-actual、总 Skill 数 56→54
+  - campus-manager-rules/SKILL.md：§4 加权威来源声明、新增 §6 任务终点
+  - campus-project-guard/SKILL.md：启动清单对齐 CLAUDE.md
+  - legacy_openclaw/06/07/08：顶部添加 OpenClaw 弃用标记
+  - 审查单模板"是否允许合并"添加废弃注释
+- 数字修正：经理12 + 执行34(24+10) + 审查8(5+3) = 54
+
+### 22:00 - 双任务并行分析
+
+- ANALYSIS-001（流程规则一致性检查）：派生执行Agent，交叉比对10个文件，发现15项问题(5严重+5中等+5轻微)
+- ANALYSIS-002（功能需求 vs HTML UI）：派生执行Agent，检查11维度29子项，20✅/6🟡/3🔴
+- 用户决策：HTML暂缓、规则文件标记修复、其余修复
+
+### ~21:00 - 环境检查
+
+- JDK 21.0.8 / Gradle 8.11.1 / Android SDK 35 / Git 2.54 / Python 3.11 全部验证通过
+- ./gradlew assembleDebug BUILD SUCCESSFUL (797ms)
 
 ### 19:30 - 文档审查修复（13项）
 

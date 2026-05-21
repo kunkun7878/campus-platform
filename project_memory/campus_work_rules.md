@@ -76,8 +76,8 @@
 
 ---
 
-<!-- 2026-05-21 补入 frontend-design 和 kotlin-multiplatform-expect-actual，现在 24→25，后期 9→10 -->
-**执行Agent skill（25个现在 + 10个后期）：**
+<!-- 2026-05-21 补入 frontend-design 和 kotlin-multiplatform-expect-actual，现在 23→24，后期 9→10 -->
+**执行Agent skill（24个现在 + 10个后期）：**
 
 | 类别 | Skill | 用途 | 激活 |
 |------|-------|------|:--:|
@@ -136,7 +136,7 @@
 **激活状态说明：**
 - **现在** = Android Phase 0 起即激活，派生 Agent 时必须带
 - **后期** = Phase 3（数据层就绪）后激活，标注在任务包中
-- 上表 56 个 Skill 已全部安装到 `.claude/skills/`
+- 上表 54 个 Skill 已全部安装到 `.claude/skills/`
 
 **派生 prompt 中引用 skill：** 派生 Agent 时，在 prompt 中显式写 "Skill要求：[列出该角色当前激活的 skill 名称]"，Agent 会在执行时调用对应 skill。
 

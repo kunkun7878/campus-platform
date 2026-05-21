@@ -15,6 +15,7 @@ datastore = "1.1.4"
 coil = "3.0.4"
 lifecycle = "2.9.0"
 activity-compose = "1.10.1"
+material-android = "1.12.0"
 core-ktx = "1.16.0"
 junit = "4.13.2"
 junit-ext = "1.2.1"
@@ -64,6 +65,8 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 # Coil
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+# Material Design (MDC-Android) — XML 主题用（启动防闪白）
+material-android = { group = "com.google.android.material", name = "material", version.ref = "material-android" }
 # Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 # Testing

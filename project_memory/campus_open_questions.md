@@ -10,7 +10,7 @@
 2. ✅ 多 Agent 采用「经理 + 执行Agent + 审查Agent 按需派生」模式
 3. ✅ 多 Agent 工作流首次实战已通过（P0-1选校机制）
 4. ✅ Obsidian 作为人工知识库 + Claude Code Edit 工具协作
-5. ✅ Skills 已安装到 `.claude/skills/`（56个，全部激活）
+5. ✅ Skills 已安装到 `.claude/skills/`（54个，全部激活）
 6. ✅ 项目从 OpenClaw 迁移到 Claude Code 完成
 7. ✅ 原型阶段 P0 修复：12/15 已修复 + 3/15 降级缓解
 8. ✅ 聊天系统（chat-detail + group-chat + post-detail + post-create）全部完成
