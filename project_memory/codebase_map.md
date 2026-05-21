@@ -70,11 +70,15 @@ android/
 | my-favorites | 真实 HTML `screenConfigs` | 待迁移 Android |
 
 ## 页面切换机制
-- 使用 `screenConfigs` 作为 screen 元信息配置表
-- 使用 `showScreen(screenKey, pushHistory = true)` 进行单文件内页面切换
-- 使用 `historyStack` 保存回退路径
-- `goBack()` 用于回退到上一个 screen
-- 通过 `data-screen-target` 和 `data-nav-target` 绑定跳转
+
+### HTML 原型（参考）
+- `screenConfigs` + `showScreen()` + `historyStack` + `data-screen-target`
+
+### Android（目标实现）
+- Navigation Compose: NavHost + NavController + 类型安全路由
+- 返回栈: NavController.popBackStack()
+- 底部导航: NavigationBar + NavController.navigate()
+- （Phase 1 实施时补充具体实现细节）
 
 ## 首页视图切换机制
 - 首页不仅有主 screen `home`

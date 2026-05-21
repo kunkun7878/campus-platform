@@ -23,7 +23,7 @@ Claude Code 会话入口。系统地图见 [[PROJECT_HOME]]。
 
 | 派生角色 | Skill要求（当前激活） | 数量 |
 |---------|---------------------|:--:|
-| 执行Agent | compose-*, android-*, kotlin-*, supabase, claude-api, verification-before-completion, receiving-code-review | 18 |
+| 执行Agent | compose-*, android-*, kotlin-*, supabase, claude-api, verification-before-completion, receiving-code-review | 24 |
 | 审查Agent | systematic-debugging, qa, ubiquitous-language, android-security-best-practices, supabase-postgres-best-practices | 5 |
 
 **不写 Skill 要求就派生 = 违规。**
@@ -38,12 +38,12 @@ Claude Code 会话入口。系统地图见 [[PROJECT_HOME]]。
 
 ## 原型
 
-`campus-miniapp-prototype.html` — 34 screen，单文件 HTML+CSS+JS。
+`campus-miniapp-prototype.html` — 34 screen，单文件 HTML+CSS+JS。原型为视觉参考使用，当前主开发目标为 Android 原生应用。
 
 ## Skills
 
 项目管理：campus-memory-sync、campus-project-guard（经理手动调用）
-Agent 工作 skill：22 个（+ 项目管理 2 个 = 共 24 个，全部激活，详见 campus_work_rules §7.1.1）
+Agent 工作 skill：53 个（+ 项目管理 2 个 = 共 55 个，详见 campus_work_rules §7.1.1）
 
 ## Obsidian
 

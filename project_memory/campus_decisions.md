@@ -19,11 +19,11 @@
 8. 多 Agent 协作已落地：经理+执行Agent+审查Agent，详见 `campus_work_rules.md` §7。
 9. 所有校园聚合平台相关文件集中放在 `C:\Users\admin\Desktop\校园聚合平台\`。
 10. Claude Code 的 CLAUDE.md 作为会话入口，自动引导读取项目记忆。
-11. 24 个 skill 已安装到 `.claude/skills/`（含原有的 campus-memory-sync + campus-project-guard）。分配详情见 campus_work_rules.md §7.1.1。20 个当前激活，4 个后期激活。
+11. 55 个 skill（53 Agent + 2 项目管理），按 §7.1.1 分配。
 
 ## 已确认的后续决策
 - ✅ 记忆体系主编辑环境：Claude Code 的 Edit 工具 + Obsidian 查看
 - ✅ 多 Agent 角色：不需要固定常驻，按需派生执行Agent和审查Agent
 - ✅ Obsidian 目录布局：整个 `校园聚合平台/` 作为 vault 根目录
 - ✅ 不使用额外的 memory 插件/wiki 层，project_memory/ Markdown 文件足够
-- ✅ 24 个 skill 从原始 skill 包分析筛选，20 个当前激活 + 4 个后期激活
+- ✅ 55 个 skill（53 Agent + 2 项目管理），按 §7.1.1 分配

@@ -1,8 +1,10 @@
 # 校园聚合平台 - UI/交互/视觉决策
 
-<!-- last_sync: 2026-05-18T19:45 CST -->
+<!-- last_sync: 2026-05-21T13:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_rules]] · [[codebase_map]]
+>
+> ⚠️ **阶段说明**：本文件记录 HTML 原型阶段的视觉风格决策（CSS变量、screen切换、data属性绑定），供 Android Compose 实现时作为视觉参考。Android 阶段的具体 UI 实现使用 Compose MaterialTheme + Navigation Compose，等效映射见 [Android 映射] 节。
 
 > 目的：统一记录已确认的 UI 风格、交互模式、组件约定，防止多 agent / 多轮迭代中视觉风格漂移。
 
@@ -98,3 +100,16 @@
 - 图标风格统一性规则
 - 动画/过渡效果统一规范
 - 社区页内部结构的更完整设计约束
+
+## Android Compose 等效映射（Phase 1 实施时填充）
+
+| HTML 原型 | Android Compose |
+|-----------|----------------|
+| CSS `--brand: #2d6bff` | `MaterialTheme.colorScheme.primary` |
+| CSS `--bg: #f5f8ff` | `MaterialTheme.colorScheme.background` |
+| `showScreen(key)` | `navController.navigate(route)` |
+| `historyStack` | `NavController.backStack` |
+| `data-screen-target` | `onClick = { navController.navigate(route) }` |
+| `.phone` 430px | `Modifier.widthIn(max = 430.dp)` |
+
+> 上表将在 Phase 1 实施时根据实际 Compose 实现填充完整。

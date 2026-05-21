@@ -21,3 +21,11 @@ Thumbs.db
 
 # Secrets
 *.env
+
+# Temp
+~$*
+android/.kotlin/
+.obsidian/
+.agents/
+outputs/
+campus-miniapp-prototype.html

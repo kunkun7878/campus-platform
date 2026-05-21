@@ -6,16 +6,16 @@
 
 ## 迭代：Android MVP 正式开发
 
-状态：**Phase 0 — 环境搭建**
+状态：**Phase 0 完成 ✅ → 准备进入 Phase 1**
 
 ### 本轮目标
 从 HTML 原型阶段进入 Android 原生应用正式开发，按 7 Phase 推进至 MVP，34 screen + 17 张数据库表全部可用。
 
-### 7 Phase 路线图
+### 8 Phase 路线图（Phase 0-7）
 
 | Phase | 内容 | 状态 |
 |-------|------|:--:|
-| 0 | 环境搭建（AS + SDK + 项目创建 + 依赖配置 + git init） | 进行中 |
+| 0 | 环境搭建（AS + SDK + 项目创建 + 依赖配置 + git init） | ✅ 完成 |
 | 1 | 项目骨架 + 主题 + 导航（5 Tab + 34 route 占位） | 待开始 |
 | 2 | 认证 + 选校（Supabase Auth + 3表 + 3 screen） | 待开始 |
 | 3 | 数据层基座（17张表DDL + Room + Retrofit + Repository） | 待开始 |
@@ -33,7 +33,7 @@
 - [x] 配置 Compose + Hilt + Navigation + Retrofit + Room + Coil + DataStore
 - [x] MainActivity 改为 Compose + Hilt
 - [x] 创建 CampusApplication（Hilt入口）
-- [x] Skills 扩充至 24 个
+- [x] Skills 扩充至 55 个（全部安装，具体激活状态见 campus_work_rules.md §7.1.1）
 - [x] 规则文档审查 + 修复12项问题
-- [ ] 编译验证（./gradlew assembleDebug）
-- [ ] git init + .gitignore + 首次 commit
+- [x] 编译验证（./gradlew assembleDebug）✅
+- [x] git init + .gitignore + 首次 commit → 已推送 GitHub ✅

@@ -2,4 +2,22 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Material3 基础颜色槽 -->
+    <color name="primary">#2D6BFF</color>
+    <color name="on_primary">#FFFFFFFF</color>
+    <color name="primary_container">#D9E2FF</color>
+    <color name="on_primary_container">#001B5E</color>
+    <color name="secondary">#12B7AE</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#CCF6F3</color>
+    <color name="on_secondary_container">#00201D</color>
+    <color name="background">#F5F8FF</color>
+    <color name="on_background">#1B2850</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface">#1B2850</color>
+    <color name="surface_variant">#E8EDF5</color>
+    <color name="on_surface_variant">#7C89A6</color>
+    <color name="error">#BA1A1A</color>
+    <color name="on_error">#FFFFFF</color>
 </resources>

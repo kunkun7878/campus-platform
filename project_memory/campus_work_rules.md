@@ -75,13 +75,12 @@
 
 ---
 
-**执行Agent skill（18个现在 + 10个后期）：**
+**执行Agent skill（24个现在 + 9个后期）：**
 
 | 类别 | Skill | 用途 | 激活 |
 |------|-------|------|:--:|
 | **Compose UI** | compose-best-practices | Compose UI 开发最佳实践 | 现在 |
-| | compose-state-authoring | 状态创建与读写分离 | 现在 |
-| | compose-state-hoisting | 状态提升与持有 | 现在 |
+| | compose-state-authoring | 状态创建、读写分离与状态提升 | 现在 |
 | | compose-state-holder-ui-split | 状态持有与UI拆分 | 现在 |
 | | compose-side-effects | 副作用API选择与Key管理 | 现在 |
 | | compose-slot-api-pattern | 可复用组件槽位设计 | 现在 |
@@ -108,7 +107,6 @@
 | | compose-state-deferred-reads | 延迟读取优化 | 后期 |
 | | android-performance-best-practices | 启动/内存/渲染优化 | 后期 |
 | **测试** | compose-ui-testing-patterns | Compose UI 测试 | 后期 |
-| | android-testing-best-practices | JUnit + MockK + 测试金字塔 | 后期 |
 | | test-driven-development | TDD 方法论 | 后期 |
 | | tdd | 深模块/接口设计 TDD | 后期 |
 | **发布** | firebase-best-practices | FCM + Crashlytics | 后期 |
@@ -116,7 +114,7 @@
 
 ---
 
-**审查Agent skill（5个现在 + 4个后期）：**
+**审查Agent skill（5个现在 + 3个后期）：**
 
 | 类别 | Skill | 用途 | 激活 |
 |------|-------|------|:--:|
@@ -126,9 +124,8 @@
 | **安全** | android-security-best-practices | 权限/加密/密钥/RLS 审查 | 现在 |
 | **数据库** | supabase-postgres-best-practices | SQL 优化 + RLS 策略审查 | 现在 |
 | **架构** | improve-codebase-architecture | 架构改进机会探索 | 后期 |
-| **测试** | compose-ui-testing-patterns | Compose 测试模式审查 | 后期 |
-| | android-testing-best-practices | 测试策略审查 | 后期 |
 | | webapp-testing | Playwright 浏览器测试（保留） | 后期 |
+| **测试** | android-testing-best-practices | JUnit + MockK + 测试金字塔 | 后期 |
 
 ---
 
@@ -154,8 +151,7 @@
 - **所有问题一律打回执行Agent修改**，经理不直接修改代码。不论问题大小。
 - 打回必须带修复清单与复审标准
 - 打回后必须复审，通过前不得宣布完成
-- 打回→修改→审查 循环持续到通过为止，不受次数限制
-- **打回循环终止条件**：连续3次打回仍未通过时，经理必须介入分析根因（任务包定义不当/执行Agent模型能力不足/规则冲突），决定重写任务包或升级为用户决策
+- 打回→修改→审查 循环不受硬性次数上限，但连续3次打回仍未通过时，经理必须介入分析根因（任务包定义不当/执行Agent模型能力不足/规则冲突），决定重写任务包或升级为用户决策
 - **阻塞**：任务因外部依赖（规则不清、用户未确认、技术不可行）无法继续 → 记录到 [[campus_open_questions]] → 暂停本任务 → 进入下一个可执行任务或等待用户
 
 ### 7.4 禁止
@@ -192,3 +188,4 @@
 - 所有数据库表必须启用 RLS
 - 审查Agent 每次审查必须检查 RLS 策略完整性
 - 用户数据隔离以 school_id 为最小隔离单位
+- 安全审查检查项已纳入审查Agent固定清单（见 §7.2），Phase 3 建表时首次执行，之后每 Phase 重复
