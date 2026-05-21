@@ -1,13 +1,13 @@
 # 校园聚合平台 - 项目规则（产品硬规则）
 
-<!-- last_sync: 2026-05-21T13:00 CST -->
+<!-- last_sync: 2026-05-21T19:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_decisions]] · [[iteration_current]] · [[codebase_map]]
 
 ## 1. 项目定位
 - 当前项目是"校园聚合平台"
 - 当前阶段：Android 原生应用正式开发（Kotlin + Jetpack Compose + Supabase）
-- 基于 HTML 高保真原型（34 screen）作为 UI 参考，分 7 Phase 推进 Android MVP。后期考虑微信小程序
+- 基于 HTML 高保真原型（34 screen）作为 UI 参考，分 8 Phase（Phase 0-7）推进 Android MVP。后期考虑微信小程序
 
 ## 2. 产品硬规则
 ### 首页

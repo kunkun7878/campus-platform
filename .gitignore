@@ -29,3 +29,4 @@ android/.kotlin/
 .agents/
 outputs/
 campus-miniapp-prototype.html
+.claude/

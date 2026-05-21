@@ -1,6 +1,6 @@
 ﻿# 校园聚合平台 - 代码/页面事实地图
 
-<!-- last_sync: 2026-05-21T13:00 CST -->
+<!-- last_sync: 2026-05-21T19:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[runtime_notes]]
 

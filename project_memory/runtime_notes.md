@@ -1,6 +1,6 @@
 # 校园聚合平台 - 运行环境与预览说明
 
-<!-- last_sync: 2026-05-21T13:00 CST -->
+<!-- last_sync: 2026-05-21T19:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[codebase_map]]
 
@@ -41,6 +41,6 @@ cd C:\Users\admin\Desktop\校园聚合平台\android
 
 ## 当前已知限制
 - HTML 原型为静态演示，无真实后端
-- Android 项目尚未编译验证（Phase 0 进行中）
+- Android 项目首次编译已验证通过（./gradlew assembleDebug，6秒）✅
 - Android Studio 中文插件暂无适配（平台253）
 - Supabase / Firebase 项目尚未创建

@@ -1,6 +1,6 @@
 # 校园聚合平台 - 术语/概念定义表
 
-<!-- last_sync: 2026-05-21T13:00 CST -->
+<!-- last_sync: 2026-05-21T19:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_rules]] · [[campus_work_rules]]
 

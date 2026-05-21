@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import com.campus.platform.ui.theme.CampusPlatformTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -17,11 +18,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                Text(
-                    text = "校园聚合平台",
-                    modifier = Modifier.padding(innerPadding)
-                )
+            CampusPlatformTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Text(
+                        text = "校园聚合平台",
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
             }
         }
     }

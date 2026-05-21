@@ -1,6 +1,6 @@
 # 校园聚合平台 - 当前迭代
 
-<!-- last_sync: 2026-05-21T13:00 CST -->
+<!-- last_sync: 2026-05-21T19:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_decisions]] · [[campus_rules]] · [[campus_work_rules]]
 
@@ -9,7 +9,7 @@
 状态：**Phase 0 完成 ✅ → 准备进入 Phase 1**
 
 ### 本轮目标
-从 HTML 原型阶段进入 Android 原生应用正式开发，按 7 Phase 推进至 MVP，34 screen + 17 张数据库表全部可用。
+从 HTML 原型阶段进入 Android 原生应用正式开发，按 8 Phase（Phase 0-7）推进至 MVP，34 screen + 17 张数据库表全部可用。
 
 ### 8 Phase 路线图（Phase 0-7）
 

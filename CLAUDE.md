@@ -18,7 +18,7 @@ Claude Code 会话入口。系统地图见 [[PROJECT_HOME]]。
 
 **每次派生 Agent，prompt 中必须写：`Skill要求：xxx`**
 
-对照表（详见 [[campus_work_rules]] §7.1.1，完整55 Skill 分配）：
+对照表（详见 [[campus_work_rules]] §7.1.1，完整56 Skill 分配）：
 
 经理的 brainstorming、writing-plans 等 11 个 skill 由经理在当前会话直接调用 Skill 工具，不派生 Agent。
 
@@ -44,7 +44,7 @@ Claude Code 会话入口。系统地图见 [[PROJECT_HOME]]。
 ## Skills
 
 项目管理：campus-memory-sync、campus-project-guard（经理手动调用）
-Agent 工作 skill：53 个（+ 项目管理 2 个 = 共 55 个，详见 campus_work_rules §7.1.1）
+Agent 工作 skill：54 个（+ 项目管理 2 个 = 共 56 个，详见 campus_work_rules §7.1.1）
 
 ## Obsidian
 

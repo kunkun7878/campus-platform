@@ -1,6 +1,6 @@
 # 校园聚合平台 - 待确认问题
 
-<!-- last_sync: 2026-05-21T13:00 CST -->
+<!-- last_sync: 2026-05-21T19:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_decisions]] · [[campus_rules]] · [[codebase_map]] · [[runtime_notes]] · [[campus_ui_decisions]] · [[iteration_current]]
 
@@ -17,16 +17,16 @@
 9. ✅ market/lost 列表视图：面板内列表 + 详情页
 10. ✅ 技术栈：Kotlin + Compose + Hilt + Navigation + Retrofit + Room + Coil + Supabase
 11. ✅ 后端方案：Supabase（零后端代码，建表即API）
-12. ✅ 开发路线：7 Phase Android MVP
+12. ✅ 开发路线：8 Phase（Phase 0-7）Android MVP
 13. ✅ 工作流规则：取消经理修小问题，审查结论简化至通过/打回/阻塞
 14. ✅ 14项P0修复顺序：已按经理→执行Agent→审查Agent完成
-15. ✅ 22个新增screen问题：已纳入7 Phase中
+15. ✅ 22个新增screen问题：已纳入8 Phase（Phase 0-7）中
 16. ✅ 聊天系统到群聊页面程度：已完成
 
 ## 待用户确认
 
 1. Android Studio 中文插件：等待 JetBrains 更新到支持平台 253（2025.3）
-2. Supabase 项目：何时注册创建？（Phase 2 认证开发前需要）
+2. Supabase 项目：待 Phase 1 完成后注册创建（Phase 2 认证开发前需要）。当前状态：未注册，GitHub 仓库已就绪（kunkun7878/campus-platform）。
 3. Firebase 项目：何时创建？（Phase 7 FCM 推送前需要）
 
 ## 原有待确认问题（待推进）

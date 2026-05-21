@@ -1,6 +1,6 @@
 # 校园聚合平台 - 工作规则（协作纪律）
 
-<!-- last_sync: 2026-05-21T13:00 CST -->
+<!-- last_sync: 2026-05-21T19:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_rules]] · [[campus_decisions]] · [[campus_status]] · [[campus_conflicts]]
 
@@ -133,7 +133,7 @@
 **激活状态说明：**
 - **现在** = Android Phase 0 起即激活，派生 Agent 时必须带
 - **后期** = Phase 3（数据层就绪）后激活，标注在任务包中
-- 上表 55 个 Skill 已全部安装到 `.claude/skills/`
+- 上表 56 个 Skill 已全部安装到 `.claude/skills/`
 
 **派生 prompt 中引用 skill：** 派生 Agent 时，在 prompt 中显式写 "Skill要求：[列出该角色当前激活的 skill 名称]"，Agent 会在执行时调用对应 skill。
 

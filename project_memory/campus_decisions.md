@@ -1,11 +1,11 @@
 # 校园聚合平台 - 已确认决策
 
-<!-- last_sync: 2026-05-21T13:00 CST -->
+<!-- last_sync: 2026-05-21T19:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_rules]] · [[campus_work_rules]] · [[campus_open_questions]] · [[iteration_current]] · [[codebase_map]] · [[campus_ui_decisions]]
 
 ## 产品路线决策
-1. 当前阶段：Android 原生应用正式开发（Kotlin + Jetpack Compose + Supabase），基于 HTML 原型作为 UI 参考，分 7 Phase 推进至 MVP。原型已进入收尾阶段，不再作为主要开发目标。
+1. 当前阶段：Android 原生应用正式开发（Kotlin + Jetpack Compose + Supabase），基于 HTML 原型作为 UI 参考，分 8 Phase（Phase 0-7）推进至 MVP。原型已进入收尾阶段，不再作为主要开发目标。
 2. 后期考虑微信小程序，当前暂不投入。
 
 ## 工程与工具决策

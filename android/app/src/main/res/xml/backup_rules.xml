@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <!-- SharedPreferences -->
+    <!-- 仅备份用户偏好，不备份数据库/token/文件 -->
     <include domain="sharedpref" path="." />
-    <!-- App-internal data (Room database, etc.) -->
-    <include domain="database" path="." />
-    <!-- Internal files (DataStore, cache, etc.) -->
-    <include domain="file" path="." />
-    <!-- External files -->
-    <include domain="external" path="." />
 </full-backup-content>
