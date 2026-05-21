@@ -70,9 +70,9 @@
 
 ## 历史产出
 
-- [[outputs/ANALYSIS-001-综合分析与建议报告\|ANALYSIS-001 综合分析与建议报告]]
-- [[outputs/QA-001-综合审查报告\|QA-001 综合审查报告]]
-- [[outputs/STRUCT-001-结构完整性盘点\|STRUCT-001 结构完整性盘点]]
-- [[outputs/EXEC-001-主链路分析\|EXEC-001 主链路分析]]
-- [[outputs/EXEC-002-次链路分析\|EXEC-002 次链路分析]]
-- [[outputs/REVIEW-001-P0-1-选校机制审查报告\|REVIEW-001 选校机制审查]]
+- [[archive/outputs/ANALYSIS-001-综合分析与建议报告\|ANALYSIS-001 综合分析与建议报告]]
+- [[archive/outputs/QA-001-综合审查报告\|QA-001 综合审查报告]]
+- [[archive/outputs/STRUCT-001-结构完整性盘点\|STRUCT-001 结构完整性盘点]]
+- [[archive/outputs/EXEC-001-主链路分析\|EXEC-001 主链路分析]]
+- [[archive/outputs/EXEC-002-次链路分析\|EXEC-002 次链路分析]]
+- [[archive/outputs/REVIEW-001-P0-1-选校机制审查报告\|REVIEW-001 选校机制审查]]

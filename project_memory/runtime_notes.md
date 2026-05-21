@@ -11,14 +11,14 @@
 
 ## HTML 原型运行
 ### 方式一：直接双击打开
-浏览器打开 `campus-miniapp-prototype.html`
+浏览器打开 `prototype/campus-miniapp-prototype.html`
 
 ### 方式二：本地静态服务
 ```bash
 cd C:\Users\admin\Desktop\校园聚合平台
 python -m http.server 8124
 ```
-访问 `http://127.0.0.1:8124/campus-miniapp-prototype.html`
+访问 `http://127.0.0.1:8124/prototype/campus-miniapp-prototype.html`
 
 ## Android 项目运行
 ### 编译

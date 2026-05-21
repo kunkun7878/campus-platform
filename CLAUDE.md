@@ -64,7 +64,7 @@ Skill要求：xxx, xxx
 
 ## 当前关键数据
 
-- 原型：34 screen，`campus-miniapp-prototype.html`
+- 原型：34 screen，`prototype/campus-miniapp-prototype.html`
 - Android：Kotlin 2.1.20 + Compose + AGP 8.9.0 + Gradle 8.11.1
 - Skills：56个（`.claude/skills/`），分配见 §7.1.1
 - 阶段：Phase 0 完成 ✅ → 准备 Phase 1

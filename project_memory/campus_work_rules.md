@@ -37,7 +37,7 @@
 - 每次修改后必须说明：改了哪、为什么、怎么验证
 - 每次任务完成后必须更新 [[campus_status]] 和 [[campus_session_log]]
 - 每次发现新问题或待确认项必须补充到 [[campus_open_questions]]
-- 审查报告存入 `outputs/REVIEW-XXX-任务名.md`
+- 审查报告存入 `archive/outputs/REVIEW-XXX-任务名.md`
 
 ## 6. 项目规则优先级
 - 以后凡是校园聚合平台相关任务，必须以桌面项目目录 `C:\Users\admin\Desktop\校园聚合平台\` 下的规则与记忆文件为准
@@ -76,7 +76,8 @@
 
 ---
 
-**执行Agent skill（24个现在 + 9个后期）：**
+<!-- 2026-05-21 补入 frontend-design 和 kotlin-multiplatform-expect-actual，现在 24→25，后期 9→10 -->
+**执行Agent skill（25个现在 + 10个后期）：**
 
 | 类别 | Skill | 用途 | 激活 |
 |------|-------|------|:--:|
@@ -99,9 +100,11 @@
 | | kotlin-coroutines-structured-concurrency | 协程作用域与取消 | 现在 |
 | | kotlin-flow-state-event-modeling | StateFlow/SharedFlow/Channel | 现在 |
 | | kotlin-types-value-class | 值类 vs 数据类 | 现在 |
+| | kotlin-multiplatform-expect-actual | KMP expect/actual 平台抽象 | 后期 |
 | **后端** | supabase | Supabase 全产品API | 现在 |
 | | claude-api | Edge Function / FCM 开发 | 现在 |
-| **质量** | verification-before-completion | 强制自检：先验证再声明完成 | 现在 |
+| **质量** | frontend-design | 高质量前端界面设计 | 现在 |
+| | verification-before-completion | 强制自检：先验证再声明完成 | 现在 |
 | | receiving-code-review | 正确接收和处理审查反馈 | 现在 |
 | **性能** | compose-recomposition-performance | 重组性能诊断 | 后期 |
 | | compose-stability-diagnostics | 稳定性诊断 | 后期 |
@@ -143,9 +146,9 @@
 - 两个任务互不依赖时可并行派生2个执行Agent
 - 审查Agent必须在执行Agent完成后派生，拿到的prompt不包含执行Agent的修改说明（独立判断）
 - 审查Agent 必须检查 RLS 策略正确性（学校隔离），作为安全审查的固定检查项
-- 任务包参考模板：`legacy_openclaw/07-任务包模板.md`（术语替换：主智能体→经理、结构规范Agent→审查范畴）
-- 审查单参考模板：`legacy_openclaw/08-审查单模板.md`（结论三类：通过/打回/阻塞，"部分通过"已于2026-05-21作废）
-- 审查报告存放：`outputs/REVIEW-XXX-任务名.md`
+- 任务包参考模板：`archive/legacy_openclaw/07-任务包模板.md`（术语替换：主智能体→经理、结构规范Agent→审查范畴）
+- 审查单参考模板：`archive/legacy_openclaw/08-审查单模板.md`（结论三类：通过/打回/阻塞，"部分通过"已于2026-05-21作废）
+- 审查报告存放：`archive/outputs/REVIEW-XXX-任务名.md`
 
 ### 7.3 审查与打回
 - 审查结论只用：通过 / 打回 / 阻塞

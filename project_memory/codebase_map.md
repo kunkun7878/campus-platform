@@ -10,7 +10,7 @@
 
 ## 关联文件
 - `project_memory/`：项目长期记忆主副本（14个Markdown文件）
-- `legacy_openclaw/`：OpenClaw 时代多Agent规范文档（已归档）
+- `archive/legacy_openclaw/`：OpenClaw 时代多Agent规范文档（已归档）
 - `android/`：Android 原生应用项目（Gradle + Kotlin DSL + Compose）
 
 ### Android 项目结构概要
