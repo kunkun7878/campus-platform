@@ -62,7 +62,7 @@
 
 ## 当前关键事实
 
-- 原型：`campus-miniapp-prototype.html`，34 screen，单文件 HTML+CSS+JS，`screenConfigs` + `showScreen()` 切换
+- 原型：`prototype/campus-miniapp-prototype.html`，34 screen，单文件 HTML+CSS+JS
 - 风格：蓝白校园风，10个 CSS 变量
 - 审查：第一轮多Agent审查 → 46条去重问题（原15项P0，12项已修复，3项降级）
 - 协作：经理 + 执行Agent（DeepSeek V4 Pro）+ 审查Agent（GPT-5.4）

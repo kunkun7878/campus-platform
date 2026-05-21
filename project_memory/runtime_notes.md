@@ -5,7 +5,7 @@
 > 关联：[[PROJECT_HOME]] · [[codebase_map]]
 
 ## 当前真实项目文件
-- HTML 原型：`C:\Users\admin\Desktop\校园聚合平台\campus-miniapp-prototype.html`（34 screen）
+- HTML 原型：`C:\Users\admin\Desktop\校园聚合平台\prototype\campus-miniapp-prototype.html`（34 screen）
 - Android 项目：`C:\Users\admin\Desktop\校园聚合平台\android\`
 - 项目记忆根目录：`C:\Users\admin\Desktop\校园聚合平台\project_memory\`
 

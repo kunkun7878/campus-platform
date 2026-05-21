@@ -5,7 +5,7 @@
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[runtime_notes]]
 
 ## 主文件路径
-- HTML 原型：`C:\Users\admin\Desktop\校园聚合平台\campus-miniapp-prototype.html`（34 screen，约5200行）
+- HTML 原型：`C:\Users\admin\Desktop\校园聚合平台\prototype\campus-miniapp-prototype.html`（34 screen，约5200行）
 - Android 项目：`C:\Users\admin\Desktop\校园聚合平台\android\`（Kotlin + Compose）
 
 ## 关联文件
