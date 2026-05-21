@@ -1,0 +1,46 @@
+# 校园聚合平台 - 运行环境与预览说明
+
+<!-- last_sync: 2026-05-21T13:00 CST -->
+
+> 关联：[[PROJECT_HOME]] · [[codebase_map]]
+
+## 当前真实项目文件
+- HTML 原型：`C:\Users\admin\Desktop\校园聚合平台\campus-miniapp-prototype.html`（34 screen）
+- Android 项目：`C:\Users\admin\Desktop\校园聚合平台\android\`
+- 项目记忆根目录：`C:\Users\admin\Desktop\校园聚合平台\project_memory\`
+
+## HTML 原型运行
+### 方式一：直接双击打开
+浏览器打开 `campus-miniapp-prototype.html`
+
+### 方式二：本地静态服务
+```bash
+cd C:\Users\admin\Desktop\校园聚合平台
+python -m http.server 8124
+```
+访问 `http://127.0.0.1:8124/campus-miniapp-prototype.html`
+
+## Android 项目运行
+### 编译
+```bash
+cd C:\Users\admin\Desktop\校园聚合平台\android
+./gradlew assembleDebug
+```
+产物：`app/build/outputs/apk/debug/app-debug.apk`
+
+### 安装到模拟器
+```bash
+./gradlew installDebug
+```
+或在 Android Studio 中直接 Run
+
+### 环境要求
+- JDK 21（已安装）
+- Android SDK 35（通过 Android Studio SDK Manager 安装）
+- Gradle 9.4.1（项目自带 wrapper，无需额外安装）
+
+## 当前已知限制
+- HTML 原型为静态演示，无真实后端
+- Android 项目尚未编译验证（Phase 0 进行中）
+- Android Studio 中文插件暂无适配（平台253）
+- Supabase / Firebase 项目尚未创建

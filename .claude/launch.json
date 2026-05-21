@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "原型预览",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["serve.js"],
+      "port": 8124,
+      "workingDirectory": "C:\\Users\\admin\\Desktop\\校园聚合平台"
+    }
+  ]
+}

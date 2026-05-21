@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "skills": {
+    "compose-focus-navigation": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-focus-navigation/SKILL.md",
+      "computedHash": "1f1fdd5f16500e1e83f4284bd69c7c450d17f5206a11ecf0df33204e67f10d01"
+    },
+    "compose-modifier-and-layout-style": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-modifier-and-layout-style/SKILL.md",
+      "computedHash": "e570816dcf6d9ca2644cfe88bd0da27dccf91f7e5a70636553343e51dae1d5f5"
+    },
+    "compose-recomposition-performance": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-recomposition-performance/SKILL.md",
+      "computedHash": "6afb9c13f1b3d7ce20ed40b62f7394b51cf5a9d51870038a5cce6a02ff978f48"
+    },
+    "compose-side-effects": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-side-effects/SKILL.md",
+      "computedHash": "086cebcf6128e30d42b52f7b148982b067796cb7c378a60eb0d931700cebaf7e"
+    },
+    "compose-slot-api-pattern": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-slot-api-pattern/SKILL.md",
+      "computedHash": "84ca9585e484b07bbc16c3b862c0c7e168b02a69ff9b4ee22ea94a7dff414948"
+    },
+    "compose-stability-diagnostics": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-stability-diagnostics/SKILL.md",
+      "computedHash": "98d3c7e7f3f6c28c5295c998edf816ddeb521dc529843e2965298963a97eb90e"
+    },
+    "compose-state-authoring": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-state-authoring/SKILL.md",
+      "computedHash": "2b37011565767a7c889865e7c0c2dd70d14cf05d3e4f587593d7f22307dcd450"
+    },
+    "compose-state-deferred-reads": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-state-deferred-reads/SKILL.md",
+      "computedHash": "58adfcacdfb9cba7cfc1081223dcdf70c9248ea9af329a023eabd0ab5a7f5b2d"
+    },
+    "compose-state-holder-ui-split": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-state-holder-ui-split/SKILL.md",
+      "computedHash": "89178d90e4c8e81b26b478ce22e0c21aba991d08584ab47a75110ca9fa215db6"
+    },
+    "compose-ui-testing-patterns": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/compose-ui-testing-patterns/SKILL.md",
+      "computedHash": "43eac9ca0730a3032edc487de1c84128aa6a58c10a65f8d17dbca5d6c0a0f8a7"
+    },
+    "kotlin-coroutines-structured-concurrency": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/kotlin-coroutines-structured-concurrency/SKILL.md",
+      "computedHash": "8d73921fb830fbe571ae69cac8e00360164f845e75503f71ac04114e5f629968"
+    },
+    "kotlin-flow-state-event-modeling": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/kotlin-flow-state-event-modeling/SKILL.md",
+      "computedHash": "b04af1c855cff834827b8a908fb4f2a1bdcbb0341c54479435c02e8dc3d84fad"
+    },
+    "kotlin-multiplatform-expect-actual": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/kotlin-multiplatform-expect-actual/SKILL.md",
+      "computedHash": "28fbd1d0c740a2e219a2badeb25c202f657ee0b29f895cd0852764850d611548"
+    },
+    "kotlin-types-value-class": {
+      "source": "chrisbanes/skills",
+      "sourceType": "github",
+      "skillPath": "skills/kotlin-types-value-class/SKILL.md",
+      "computedHash": "5d53151cf2555ddfaa546996b34442472189d9eec9c416c1dddb9ff8d1ce034a"
+    },
+    "supabase": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/supabase/SKILL.md",
+      "computedHash": "2df21087c49ef5d9cc1189ea24d41d67e4b06b64009e580f44d0e89b1a8b079b"
+    },
+    "supabase-postgres-best-practices": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
+      "computedHash": "38fb49d3b57c46cba18b07a44254bd42c4c93903fda1d8cb683429615d32fec4"
+    }
+  }
+}
