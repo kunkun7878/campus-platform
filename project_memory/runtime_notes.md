@@ -1,6 +1,6 @@
 # 校园聚合平台 - 运行环境与预览说明
 
-<!-- last_sync: 2026-05-21T19:30 CST -->
+<!-- last_sync: 2026-05-22T14:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[codebase_map]]
 
@@ -37,10 +37,10 @@ cd C:\Users\admin\Desktop\校园聚合平台\android
 ### 环境要求
 - JDK 21（已安装）
 - Android SDK 35（通过 Android Studio SDK Manager 安装）
-- Gradle 9.4.1（项目自带 wrapper，无需额外安装）
+- Gradle 8.11.1（项目自带 wrapper，无需额外安装）
 
 ## 当前已知限制
 - HTML 原型为静态演示，无真实后端
 - Android 项目首次编译已验证通过（./gradlew assembleDebug，6秒）✅
 - Android Studio 中文插件暂无适配（平台253）
-- Supabase / Firebase 项目尚未创建
+- Supabase 项目已创建（campus-platform, ap-southeast-1）；Firebase 项目尚未创建（Phase 7 前创建）

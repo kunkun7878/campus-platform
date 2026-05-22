@@ -1,30 +1,61 @@
 # 校园聚合平台 - 当前迭代
 
-<!-- last_sync: 2026-05-21T19:30 CST -->
+<!-- last_sync: 2026-05-22T14:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_decisions]] · [[campus_rules]] · [[campus_work_rules]]
 
 ## 迭代：Android MVP 正式开发
 
-状态：**Phase 0 完成 ✅ → 准备进入 Phase 1**
+状态：**Phase 2 完成 ✅ → 准备进入 Phase 3**
 
 ### 本轮目标
 从 HTML 原型阶段进入 Android 原生应用正式开发，按 8 Phase（Phase 0-7）推进至 MVP，34 screen + 17 张数据库表全部可用。
 
 ### 8 Phase 路线图（Phase 0-7）
 
-| Phase | 内容 | 状态 |
-|-------|------|:--:|
-| 0 | 环境搭建（AS + SDK + 项目创建 + 依赖配置 + git init） | ✅ 完成 |
-| 1 | 项目骨架 + 主题 + 导航（5 Tab + 34 route 占位） | 待开始 |
-| 2 | 认证 + 选校（Supabase Auth + 3表 + 3 screen） | 待开始 |
-| 3 | 数据层基座（17张表DDL + Room + Retrofit + Repository） | 待开始 |
-| 4 | 跑腿全链路（8 screen） | 待开始 |
-| 5 | 二手交易（4 screen） | 待开始 |
-| 6 | 失物招领 + 社区（9 screen + 实时聊天） | 待开始 |
-| 7 | 收口补齐（推送 + 三态 + 图片 + 全链路验证） | 待开始 |
+| Phase | 内容                                            |  状态  |
+| ----- | --------------------------------------------- | :--: |
+| 0     | 环境搭建（AS + SDK + 项目创建 + 依赖配置 + git init）       | ✅ 完成 |
+| 1     | 项目骨架 + 主题 + 导航（5 Tab + 34 route 占位）           | ✅ 完成 |
+| 2     | 认证 + 选校（Supabase Auth + 4表 + 6 screen）        | ✅ 完成 |
+| 3     | 数据层基座（17张表DDL + Room + Retrofit + Repository） | 待开始  |
+| 4     | 跑腿全链路（8 screen）                               | 待开始  |
+| 5     | 二手交易（4 screen）                                | 待开始  |
+| 6     | 失物招领 + 社区（9 screen + 实时聊天）                    | 待开始  |
+| 7     | 收口补齐（推送 + 三态 + 图片 + 全链路验证）                    | 待开始  |
 
-### Phase 0 任务（当前）
+### Phase 2 任务（已完成 ✅）
+
+- [x] Supabase 项目创建：campus-platform (ap-southeast-1)
+- [x] 6 个 SQL Migration（profiles/schools/campuses/wechat_identities/RLS + auth_triggers）
+- [x] 种子数据：四川师范大学（3校区）+ 四川邮电职业技术学院（1校区）
+- [x] AuthRepository + AuthValidator + SchoolRepository + AuthModule (Hilt DI)
+- [x] AuthGuard 登录守卫（Login/SchoolSelect/Home 三态判定）
+- [x] LoginScreen 重写（手机号+密码/OTP 双模式 + CAPTCHA）
+- [x] RegisterScreen 重写（3步分步表单 + 密码强度条）
+- [x] PasswordResetScreen / AccountDeleteScreen 新建
+- [x] SchoolSelectScreen 重写（学校-校区两级选择器）
+- [x] PasswordStrengthBar / CaptchaDialog 组件
+- [x] Supabase Kotlin SDK 3.1.2 集成 + Gradle 配置
+- [x] 编译验证（./gradlew assembleDebug BUILD SUCCESSFUL）
+- [x] 审查通过（2项注意事项：OTP SDK兼容性 + 协议复选框）
+- [x] 联调测试通过（curl：登录→profiles→schools→campuses）
+- [x] SQL 待用户手动执行（Supabase Dashboard SQL Editor）
+
+### Phase 1 任务（已完成 ✅）
+
+- [x] 创建 42 个新 Kotlin 文件（navigation + component + screen）
+- [x] 35 条类型安全路由（34 screen + 5 嵌套图标记 + 1 global）
+- [x] 5 嵌套 NavGraph（HomeTab/PublishTab/CommunityTab/MessageTab/ProfileTab）
+- [x] CampusHeroBar（brand + meta + search 三层，按路由配置显隐）
+- [x] CampusBottomNav（5 Tab + 点击已选中弹回根）
+- [x] ScreenPlaceholder 占位模板（33 screen 统一使用）
+- [x] HomeScreen HorizontalPager + FilterChip（runner/market/lost 子视图切换）
+- [x] 底部导航显隐逻辑（SchoolSelect/Login/Register 隐藏）
+- [x] 编译验证（./gradlew assembleDebug BUILD SUCCESSFUL）
+- [x] 审查打回修复循环（4项问题 → 复审通过）
+
+### Phase 0 任务（已完成 ✅）
 
 - [x] 安装 Android Studio 2025.3.4
 - [x] 安装 JDK 21（已预装）

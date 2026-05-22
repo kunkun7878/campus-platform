@@ -1,0 +1,11 @@
+package com.campus.platform.ui.screen.home
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.campus.platform.ui.component.ScreenPlaceholder
+
+/** 商品详情 */
+@Composable
+fun GoodsDetailScreen(modifier: Modifier = Modifier) {
+    ScreenPlaceholder("商品详情")
+}

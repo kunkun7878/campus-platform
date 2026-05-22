@@ -1,11 +1,57 @@
 # 校园聚合平台 - 会话推进日志
 
-<!-- last_sync: 2026-05-21T22:55 CST -->
+<!-- last_sync: 2026-05-22T14:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[iteration_current]]
 > 历史日志已归档到：[[archive/session_log_2026-05]]
 
+## 2026-05-22
+
+### 14:00 - 第1轮审查修复：build.gradle签名密码移至local.properties / HeroBar加搜索栏 / 密码锁定倒计时 / last_sync更新
+
+- 执行Agent直接修复第1轮审查发现的全部4严重+6中等+若干轻微问题
+- 修复清单：
+  1. build.gradle.kts 签名密码从硬编码改为 getLocalProperty() 读取（KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD 追加到 local.properties）
+  2. CampusHeroBar 新增 searchPlaceholder 参数 + onSearchClick 回调，CampusMainScaffold 传入 config.search
+  3. LoginScreen 新增本地密码错误计数器：>=5次提示切换验证码，>=8次锁定60秒倒计时（不与 GOTRUE 服务端锁竞态）
+  4. 8个 project_memory 文件 last_sync 更新为 2026-05-22T14:00 CST
+  5. RLS migration 末尾追加列级隐私粒度说明注释（建议 VIEW public_profiles）
+  6. codebase_map.md screen 状态：login/register/school-select 标 ✅ Phase 2 已实现，"待 Phase 4-6"→"待对应 Phase 实现业务内容"
+  7. campus_work_rules.md "审查范畴"→"审查Agent"（术语漂移修复）
+  8. §7.1.1 添加 Skill 计数矛盾 HTML 注释 + campus_open_questions 新增 domain-model skill 待跟进
+- 编译验证：待执行
+
 ## 2026-05-21
+
+### 12:00 - Phase 2 完成：认证 + 选校
+
+- 严格按 manager-rules §3 流程：方案讨论(4决策)→缺口检查(36项)→任务包→执行Agent→审查通过
+- 用户16项决策全部确认（认证方式/选校机制/密码策略/CAPTCHA/注销等）
+- Supabase 项目创建：campus-platform (ap-southeast-1, ref: fzmdhllxzyyzfpxkqpdy)
+- 6 个 SQL Migration（profiles/schools/campuses/wechat_identities + RLS 全策略 + auth_triggers）
+- Android 端：AuthRepository + AuthValidator + SchoolRepository + AuthModule + AuthGuard
+- 6 Screen 重写/新建：Login(双模式)/Register(3步)/PasswordReset/AccountDelete/SchoolSelect(两级)
+- 2 组件：PasswordStrengthBar(三档强度条) + CaptchaDialog(数学题验证)
+- Supabase Kotlin SDK 3.1.2 集成
+- 编译：./gradlew assembleDebug BUILD SUCCESSFUL
+- 审查通过（2注意事项：OTP SDK兼容性 + 协议复选框）
+- 状态更新：campus_status/iteration_current/open_questions/rules 已同步
+
+### 01:30 - Phase 1 审计修复闭环
+
+- 双Agent并行审计（代码质量 + 产品需求对齐），发现 5中等问题 + 9轻微问题
+- 关键偏离：@Serializable未使用、HorizontalPager未实现、saveState缺失、HeroBar硬编码、路由归属错误
+- 执行Agent修复：路由重写为@Serializable、NavGraph saveState/restoreState、HomeScreen HorizontalPager+FilterChip、HeroBar移除默认值+statusBarsPadding、4文件移动到home包、BottomNav改用hasRoute<T>()
+- 审查Agent复审通过，BUILD SUCCESSFUL
+
+### 23:50 - Phase 1 完成：项目骨架 + 主题 + 导航
+
+- 严格按 campus-manager-rules §3 流程执行：任务包 → 执行Agent思路方案 → 经理确认 → 代码实现 → 审查打回(4项) → 修复 → 复审通过
+- 新建 42 Kotlin 文件 + 修改 MainActivity.kt
+- 产出：35 路由 + 5 嵌套 NavGraph + HeroBar + BottomNav + ScreenPlaceholder + HomeScreen(子视图切换)
+- 编译：./gradlew assembleDebug BUILD SUCCESSFUL
+- 状态更新：campus_status.md + iteration_current.md + codebase_map.md（待补）
+- 统计：Phase 1 从计划到复审通过共派生 1 执行Agent + 2 审查Agent
 
 ### 22:50 - 规则文件一致性修复闭环
 

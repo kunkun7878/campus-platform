@@ -20,6 +20,9 @@ core-ktx = "1.16.0"
 junit = "4.13.2"
 junit-ext = "1.2.1"
 espresso = "3.6.1"
+supabase = "3.1.2"
+security-crypto = "1.0.0"
+sqlcipher = "4.5.4"
 
 [libraries]
 # Compose BOM
@@ -69,6 +72,17 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 material-android = { group = "com.google.android.material", name = "material", version.ref = "material-android" }
 # Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+# Supabase Kotlin SDK
+supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
+supabase-kt = { group = "io.github.jan-tennert.supabase", name = "supabase-kt" }
+supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
+supabase-compose-auth = { group = "io.github.jan-tennert.supabase", name = "compose-auth" }
+supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-kt" }
+
+# Security
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "security-crypto" }
+sqlcipher = { group = "net.zetetic", name = "android-database-sqlcipher", version.ref = "sqlcipher" }
+
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit-ext" }

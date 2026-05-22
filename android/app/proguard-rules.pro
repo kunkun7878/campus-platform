@@ -42,3 +42,13 @@
     *** copy(...);
     public java.lang.String toString();
 }
+
+# Supabase Kotlin SDK
+-keep class io.github.jan-tennert.supabase.** { *; }
+-dontwarn io.github.jan-tennert.supabase.**
+
+# SQLCipher
+-keep class net.zetetic.** { *; }
+-keep class org.sqlite.** { *; }
+-dontwarn net.zetetic.**
+-dontwarn org.sqlite.**

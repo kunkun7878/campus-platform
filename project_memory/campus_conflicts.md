@@ -1,6 +1,6 @@
 # 校园聚合平台 - 规则冲突记录
 
-<!-- last_sync: 2026-05-21T19:30 CST -->
+<!-- last_sync: 2026-05-22T15:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_rules]] · [[campus_work_rules]] · [[campus_status]]
 

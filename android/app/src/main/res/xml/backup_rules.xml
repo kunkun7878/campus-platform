@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
     <!-- 仅备份用户偏好，不备份数据库/token/文件 -->
+    <!-- 注意：allowBackup="false" 已在 AndroidManifest 中设置，此文件为保险配置 -->
     <include domain="sharedpref" path="." />
+    <exclude domain="sharedpref" path="campus_secure_prefs.xml" />
 </full-backup-content>

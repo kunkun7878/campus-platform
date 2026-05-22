@@ -1,6 +1,6 @@
 # 校园聚合平台 - 工作规则（协作纪律）
 
-<!-- last_sync: 2026-05-21T20:25 CST -->
+<!-- last_sync: 2026-05-22T15:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_rules]] · [[campus_decisions]] · [[campus_status]] · [[campus_conflicts]]
 
@@ -137,6 +137,8 @@
 - **现在** = Android Phase 0 起即激活，派生 Agent 时必须带
 - **后期** = Phase 3（数据层就绪）后激活，标注在任务包中
 - 上表 54 个 Skill 已全部安装到 `.claude/skills/`
+<!-- 注：campus_decisions.md (#11) 写 "54 个 skill（52 Agent + 2 项目管理）"，与 §7.1.1 表中 12+34+8=54 的总数一致，但细分 52 vs 54 存在 2 的差异。52=54-2（减去 campus-memory-sync + campus-project-guard 两个项目管理 skill？），待后续核实。 -->
+
 
 **派生 prompt 中引用 skill：** 派生 Agent 时，在 prompt 中显式写 "Skill要求：[列出该角色当前激活的 skill 名称]"，Agent 会在执行时调用对应 skill。
 
@@ -146,7 +148,7 @@
 - 两个任务互不依赖时可并行派生2个执行Agent
 - 审查Agent必须在执行Agent完成后派生，拿到的prompt不包含执行Agent的修改说明（独立判断）
 - 审查Agent 必须检查 RLS 策略正确性（学校隔离），作为安全审查的固定检查项
-- 任务包参考模板：`archive/legacy_openclaw/07-任务包模板.md`（术语替换：主智能体→经理、结构规范Agent→审查范畴）
+- 任务包参考模板：`archive/legacy_openclaw/07-任务包模板.md`（术语替换：主智能体→经理、结构规范Agent→审查Agent）
 - 审查单参考模板：`archive/legacy_openclaw/08-审查单模板.md`（结论三类：通过/打回/阻塞，"部分通过"已于2026-05-21作废）
 - 审查报告存放：`archive/outputs/REVIEW-XXX-任务名.md`
 
@@ -196,3 +198,51 @@
 - 审查Agent 每次审查必须检查 RLS 策略完整性
 - 用户数据隔离以 school_id 为最小隔离单位
 - 安全审查检查项已纳入审查Agent固定清单（见 §7.2），Phase 3 建表时首次执行，之后每 Phase 重复
+
+---
+
+## 9. 紧急与异常流程
+
+### 9.1 Hotfix 快速通道
+
+紧急 bug 修复使用快速通道，不跳过审查但压缩流程：
+
+| 维度 | 常规修改 | Hotfix |
+|------|---------|--------|
+| 思路确认 | 先出思路→经理确认→动手 | 可跳过，执行Agent直接修 |
+| 审查 | 必须派生审查Agent | 必须派生审查Agent |
+| 打回上限 | 3次后经理介入分析根因 | 最多2轮，仍不过则经理直接决策（临时修复+正式修复队列） |
+| 记忆同步 | 全流程同步 | 仅节点E同步，事后补详细记录 |
+
+- Hotfix 完成后必须开一个普通修改任务做正式修复，消除临时方案。
+- 由用户口头声明"这是 hotfix"即触发快速通道。
+
+### 9.2 编译失败恢复
+
+```
+编译失败 → 执行Agent自检（verification-before-completion skill）
+         → 不能自愈 → 经理判定根因三类：
+            A. 执行Agent改动导致 → 打回修改
+            B. 环境/配置问题 → 经理排查（.gradle / local.properties / JDK）
+            C. 上游依赖问题 → 记录到 campus_open_questions，阻塞任务
+```
+
+- 编译失败不影响其他并行任务。并行Agent之间环境隔离。
+
+### 9.3 SQL Migration 执行失败
+
+1. **每个 migration 必须附带 revert 回滚脚本**，由执行Agent产出、审查Agent验证。
+2. **执行权在用户**：Agent 只产出 migration + revert，用户在 Supabase Dashboard 手动执行。
+3. **失败处理**：用户回滚到上一个正常状态 → Agent 分析根因 → 重新产出修正版。
+
+### 9.4 分支冲突（Merge Conflict）
+
+```
+冲突发生 → 执行Agent停止当前工作 → 报告冲突文件清单给经理
+         → 经理决策：
+            A. 简单冲突（冲突行 < 20，无业务逻辑歧义）→ 经理手动解决
+            B. 复杂冲突（冲突行 >= 20，或涉及业务规则）→ 派生独立执行Agent解决
+            C. 同一文件被两个并行Agent同时修改 → 任务拆分不当，经理重排顺序
+```
+
+- 经理派发并行任务时，不得让两个Agent同时修改同一个文件。

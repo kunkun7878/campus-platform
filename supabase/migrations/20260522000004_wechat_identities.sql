@@ -20,6 +20,12 @@ CREATE TABLE IF NOT EXISTS public.wechat_identities (
 );
 
 -- ── RLS ──────────────────────────────────────────────────
+--
+-- 安全设计：客户端只读，写入仅 Edge Function 使用 service_role
+-- 客户端仅允许 SELECT 自己的微信绑定记录。
+-- INSERT/UPDATE/DELETE 操作由 Edge Function（微信登录回调）以 service_role 执行，
+-- 客户端没有任何 INSERT/UPDATE/DELETE policy。
+-- 清理旧版 INSERT/DELETE policy（如已创建则移除，确保客户端无法写入）
 
 ALTER TABLE public.wechat_identities ENABLE ROW LEVEL SECURITY;
 
@@ -30,13 +36,5 @@ CREATE POLICY wechat_identities_select_policy ON public.wechat_identities
     USING (user_id = auth.uid());
 
 DROP POLICY IF EXISTS wechat_identities_insert_policy ON public.wechat_identities;
-CREATE POLICY wechat_identities_insert_policy ON public.wechat_identities
-    FOR INSERT
-    TO authenticated
-    WITH CHECK (user_id = auth.uid());
-
+DROP POLICY IF EXISTS wechat_identities_update_policy ON public.wechat_identities;
 DROP POLICY IF EXISTS wechat_identities_delete_policy ON public.wechat_identities;
-CREATE POLICY wechat_identities_delete_policy ON public.wechat_identities
-    FOR DELETE
-    TO authenticated
-    USING (user_id = auth.uid());
