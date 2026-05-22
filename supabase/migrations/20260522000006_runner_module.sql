@@ -351,3 +351,9 @@ CREATE POLICY user_addresses_delete_policy ON public.user_addresses
     FOR DELETE
     TO authenticated
     USING (user_id = auth.uid());
+
+-- Agent 可查看所有地址（客服排查订单需要）
+DROP POLICY IF EXISTS user_addresses_agent_select_policy ON public.user_addresses;
+CREATE POLICY user_addresses_agent_select_policy ON public.user_addresses
+    FOR SELECT TO authenticated
+    USING (public.is_agent());

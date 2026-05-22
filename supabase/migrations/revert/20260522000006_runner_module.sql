@@ -43,6 +43,7 @@ DROP POLICY IF EXISTS user_addresses_select_policy ON public.user_addresses;
 DROP POLICY IF EXISTS user_addresses_insert_policy ON public.user_addresses;
 DROP POLICY IF EXISTS user_addresses_update_policy ON public.user_addresses;
 DROP POLICY IF EXISTS user_addresses_delete_policy ON public.user_addresses;
+DROP POLICY IF EXISTS user_addresses_agent_select_policy ON public.user_addresses;
 ALTER TABLE IF EXISTS public.user_addresses DISABLE ROW LEVEL SECURITY;
 DROP TRIGGER IF EXISTS trg_user_addresses_updated_at ON public.user_addresses;
 DROP TABLE IF EXISTS public.user_addresses CASCADE;

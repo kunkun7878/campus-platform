@@ -229,10 +229,7 @@ DROP POLICY IF EXISTS community_comments_delete_policy ON public.community_comme
 CREATE POLICY community_comments_delete_policy ON public.community_comments
     FOR DELETE
     TO authenticated
-    USING (
-        author_id = auth.uid()
-        OR public.is_agent()
-    );
+    USING (public.is_agent());
 
 -- ── official_groups ───────────────────────────────────────
 -- 仅 Agent 可管理；所有用户可读同校的群

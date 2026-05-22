@@ -230,7 +230,7 @@ CREATE POLICY conversations_agent_select_policy ON public.conversations
     TO authenticated
     USING (public.is_agent());
 
--- INSERT: 会话参与者之一是自己；不允许自聊
+-- INSERT: 会话参与者之一是自己；不允许自聊；两方必须同校
 DROP POLICY IF EXISTS conversations_insert_policy ON public.conversations;
 CREATE POLICY conversations_insert_policy ON public.conversations
     FOR INSERT
@@ -238,6 +238,11 @@ CREATE POLICY conversations_insert_policy ON public.conversations
     WITH CHECK (
         (user1_id = auth.uid() OR user2_id = auth.uid())
         AND user1_id != user2_id
+        AND EXISTS (
+            SELECT 1 FROM public.profiles p1
+            JOIN public.profiles p2 ON p1.school_id = p2.school_id
+            WHERE p1.id = user1_id AND p2.id = user2_id
+        )
     );
 
 -- UPDATE: 只能更新自己参与的会话
