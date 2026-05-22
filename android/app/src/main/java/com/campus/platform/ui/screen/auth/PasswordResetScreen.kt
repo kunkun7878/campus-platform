@@ -8,14 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -24,24 +21,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.campus.platform.data.auth.AuthRepository
-import com.campus.platform.data.auth.AuthValidator
-import com.campus.platform.ui.component.CaptchaDialog
-import com.campus.platform.ui.component.PasswordStrengthBar
-import kotlinx.coroutines.launch
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.campus.platform.ui.viewmodel.auth.PasswordResetViewModel
 
 /**
  * 忘记密码页。
@@ -53,24 +44,21 @@ import kotlinx.coroutines.launch
  *
  * 注意：Phase 3 SDK 更新后可启用完整 OTP 重置流程（Step 1 验证码 → Step 2 设新密码）。
  *
- * @param authRepository Supabase Auth 仓库
- * @param onNavigateToLogin 返回登录
+ * Phase 3：使用 PasswordResetViewModel 管理状态，通过 navController 导航。
  */
 @Composable
 fun PasswordResetScreen(
-    authRepository: AuthRepository,
-    onNavigateToLogin: () -> Unit,
+    viewModel: PasswordResetViewModel = hiltViewModel(),
+    navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
+    val formState by viewModel.formState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var phone by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    fun showError(msg: String) {
-        error = msg
-        scope.launch { snackbarHostState.showSnackbar(msg) }
+    LaunchedEffect(formState.error) {
+        formState.error?.let {
+            snackbarHostState.showSnackbar(it)
+        }
     }
 
     Scaffold(
@@ -112,8 +100,8 @@ fun PasswordResetScreen(
 
             // ── 手机号输入（仅用于确认，不实际发送） ──
             OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it.take(11).filter { c -> c.isDigit() } },
+                value = formState.phone,
+                onValueChange = { viewModel.onPhoneChange(it) },
                 label = { Text("手机号（确认用）") },
                 placeholder = { Text("请输入注册时的手机号") },
                 keyboardOptions = KeyboardOptions(
@@ -128,7 +116,7 @@ fun PasswordResetScreen(
 
             // ── 操作按钮 ──
             Button(
-                onClick = onNavigateToLogin,
+                onClick = { navController.popBackStack() },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("返回登录，使用验证码登录")
@@ -147,7 +135,7 @@ fun PasswordResetScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                TextButton(onClick = onNavigateToLogin) {
+                TextButton(onClick = { navController.popBackStack() }) {
                     Text("← 返回登录")
                 }
             }

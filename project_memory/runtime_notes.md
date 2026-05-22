@@ -1,6 +1,6 @@
 # 校园聚合平台 - 运行环境与预览说明
 
-<!-- last_sync: 2026-05-22T14:00 CST -->
+<!-- last_sync: 2026-05-22T20:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[codebase_map]]
 
@@ -8,6 +8,31 @@
 - HTML 原型：`C:\Users\admin\Desktop\校园聚合平台\prototype\campus-miniapp-prototype.html`（34 screen）
 - Android 项目：`C:\Users\admin\Desktop\校园聚合平台\android\`
 - 项目记忆根目录：`C:\Users\admin\Desktop\校园聚合平台\project_memory\`
+- Supabase Migrations：`C:\Users\admin\Desktop\校园聚合平台\supabase\migrations\`（15 个 + 15 Revert）
+
+## Supabase Migration 执行
+
+### 执行方式
+在 Supabase Dashboard → SQL Editor 中，按编号顺序逐个打开 migration 文件，选中全部内容后点击 Run。
+
+### 执行顺序
+```
+00_create_profiles → 01_create_schools_campuses → 02_seed_data →
+03_rls_policies → 04_wechat_identities → 05_add_indexes →
+06_runner_module → 07_market_module → 08_lost_found_module →
+09_community_module → 10_notifications →
+11_runner_after_sale_supplement → 12_messaging_social →
+13_wallet_system → 14_misc_alter_profiles
+```
+
+### 回滚
+如执行失败，在 `revert/` 子目录下找到对应编号的 revert 脚本，逆序执行。
+
+### Supabase 项目
+- 项目名：campus-platform
+- 区域：ap-southeast-1（新加坡）
+- URL：https://fzmdhllxzyyzfpxkqpdy.supabase.co
+- anon key：已配置在 `android/local.properties`
 
 ## HTML 原型运行
 ### 方式一：直接双击打开

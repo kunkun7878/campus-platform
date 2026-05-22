@@ -1,6 +1,6 @@
 # 校园聚合平台 - 已确认决策
 
-<!-- last_sync: 2026-05-22T14:00 CST -->
+<!-- last_sync: 2026-05-22T18:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_rules]] · [[campus_work_rules]] · [[campus_open_questions]] · [[iteration_current]] · [[codebase_map]] · [[campus_ui_decisions]]
 
@@ -59,3 +59,31 @@
 18. 账号注销：Phase 2 支持（软删除 status=2 + deleted_at）
 19. Session：自动登录（SDK 默认），退出登录清除 session，切换设备重登
 20. 用户协议：Phase 2 做占位，后期可替换
+
+## Phase 3 数据层设计决策（2026-05-22）
+
+### 数据库范围
+21. 36 张表全覆盖（4已有 + 32新增），一次性补齐，不按 Phase 分批
+22. 每张内容表必须有 school_id + RLS 策略 + revert 脚本
+
+### Room 策略
+23. Supabase 为权威数据源（source of truth），Room 为本地缓存
+24. SQLCipher 全库加密，Phase 3 启用
+25. Entity 与 DTO 分离，通过 Mapper 扩展函数转换
+26. 新 Repository 引入接口（domain/repository/），旧 Repository 保持不动
+
+### ViewModel
+27. Phase 3 全面引入 ViewModel，新旧 Screen 全部迁移
+
+### RLS 设计
+28. login_codes：service_role only，客户端无 policy（参照 wechat_identities）
+29. profiles 敏感字段（balance/runner_status/invite_code）：trigger 保护，用户不可自改
+30. announcements.school_id：NULL = 全平台公告，有值 = 仅该校可见
+31. wallet_transactions：append-only，无 updated_at
+32. group_messages/members：通过 JOIN official_groups.school_id 实现学校隔离
+33. 所有内容表 ON DELETE RESTRICT（防误删级联），user_addresses 除外（SET NULL）
+
+### Migration 管理
+34. 每个 migration 必须有配套 revert，使用 IF NOT EXISTS/DROP IF EXISTS 确保幂等
+35. RLS 策略集中在各模块 migration 中，不单独分离
+36. service_role 路径必须在所有 trigger 中显式豁免

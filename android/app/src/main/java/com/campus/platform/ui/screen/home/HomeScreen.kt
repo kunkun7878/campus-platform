@@ -16,8 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.campus.platform.ui.component.ScreenPlaceholder
-import com.campus.platform.ui.screen.home.HomeSubView
+import com.campus.platform.ui.viewmodel.home.HomeViewModel
 import kotlinx.coroutines.launch
 
 /**
@@ -29,7 +31,11 @@ import kotlinx.coroutines.launch
  * FilterChip 与 Pager 页面状态双向同步。
  */
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel(),
+    navController: NavController,
+    modifier: Modifier = Modifier,
+) {
     val tabs = HomeSubView.entries
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
     val scope = rememberCoroutineScope()

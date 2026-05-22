@@ -1,15 +1,15 @@
 # 校园聚合平台 - 当前迭代
 
-<!-- last_sync: 2026-05-22T14:00 CST -->
+<!-- last_sync: 2026-05-22T20:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_decisions]] · [[campus_rules]] · [[campus_work_rules]]
 
 ## 迭代：Android MVP 正式开发
 
-状态：**Phase 2 完成 ✅ → 准备进入 Phase 3**
+状态：**Phase 3 完成 ✅ → 准备进入 Phase 4**
 
 ### 本轮目标
-从 HTML 原型阶段进入 Android 原生应用正式开发，按 8 Phase（Phase 0-7）推进至 MVP，34 screen + 17 张数据库表全部可用。
+从 HTML 原型阶段进入 Android 原生应用正式开发，按 8 Phase（Phase 0-7）推进至 MVP，34 screen + 36 张数据库表全部可用。
 
 ### 8 Phase 路线图（Phase 0-7）
 
@@ -18,11 +18,25 @@
 | 0     | 环境搭建（AS + SDK + 项目创建 + 依赖配置 + git init）       | ✅ 完成 |
 | 1     | 项目骨架 + 主题 + 导航（5 Tab + 34 route 占位）           | ✅ 完成 |
 | 2     | 认证 + 选校（Supabase Auth + 4表 + 6 screen）        | ✅ 完成 |
-| 3     | 数据层基座（17张表DDL + Room + Retrofit + Repository） | 待开始  |
+| 3     | 数据层基座（36表DDL + Room + Repository + ViewModel） | ✅ 完成 |
 | 4     | 跑腿全链路（8 screen）                               | 待开始  |
 | 5     | 二手交易（4 screen）                                | 待开始  |
 | 6     | 失物招领 + 社区（9 screen + 实时聊天）                    | 待开始  |
 | 7     | 收口补齐（推送 + 三态 + 图片 + 全链路验证）                    | 待开始  |
+
+### Phase 3 任务（已完成 ✅）
+
+- [x] SQL Migration 层（36张表 + 15 Migration + 15 Revert）
+- [x] Android Room 层（25 Entity + 7 DAO + 7 Mapper + AppDatabase + DataStore）
+- [x] Android Repository 层（16 接口 + 16 实现 + NetworkModule + RepositoryModule）
+- [x] Android ViewModel 层（35 ViewModel + 34 Screen 改造 + MainActivity/NavGraph 重构）
+- [x] 编译验证：BUILD SUCCESSFUL
+- [x] 8 轮审查全部通过
+- [ ] SQL 待用户在 Supabase Dashboard 执行
+
+### Phase 2 任务（已完成 ✅）
+
+[... 后续不变 ...]
 
 ### Phase 2 任务（已完成 ✅）
 

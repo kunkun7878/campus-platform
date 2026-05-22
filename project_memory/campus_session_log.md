@@ -1,13 +1,42 @@
 # 校园聚合平台 - 会话推进日志
 
-<!-- last_sync: 2026-05-22T14:00 CST -->
+<!-- last_sync: 2026-05-22T20:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[iteration_current]]
 > 历史日志已归档到：[[archive/session_log_2026-05]]
 
 ## 2026-05-22
 
-### 14:00 - 第1轮审查修复：build.gradle签名密码移至local.properties / HeroBar加搜索栏 / 密码锁定倒计时 / last_sync更新
+### 20:00 - Phase 3 完成：数据层基座完整交付
+
+- Android 端完成（58 Kotlin 文件新增 + 35 ViewModel + 34 Screen 改造）
+- 编译验证：BUILD SUCCESSFUL（修复 Coil 3.x API + Supabase isNull + SQLCipher import 共3轮）
+- 补齐缺失 Repository（IRunnerReviewRepository + IRunnerApplicationRepository）
+- 安全加固：移除 DataStore 明文 authToken + SQLCipher passphrase 改用 EncryptedSharedPreferences
+- 代码质量：TypeConverters 改用 kotlinx.serialization + 移除未使用 import
+- ViewModel 全面迁移：35 ViewModel + MainActivity/NavGraph 重构 + 全部 Screen 改为 hiltViewModel()
+- 统计：Phase 3 共派生 3 分析 + 5 执行 + 5 审查 = 13 Agent
+- 状态更新：campus_status / iteration_current / session_log / codebase_map / decisions / runtime_notes 已同步
+- 下一步：Phase 4 跑腿全链路（8 screen）
+
+### 18:00 - Phase 3 SQL 层完成：36 张表 DDL + 15 Migration + 15 Revert
+
+- 严格按 campus-manager-rules §3 流程：分析→审查→修复→复审→最终审查
+- 3 Agent 深度分析（34屏逐字段提取 + 产品规则交叉比对 + Android 技术方案）
+- 用户 10 项决策确认（表范围/ Room策略/ ViewModel/ 优先动作/ 6项设计决策）
+- 审查 migration 06-10：发现 17 处严重+中等问题 → 执行Agent修复 → 复审通过
+- 新建 migration 11-14：19 张新表 + ALTER profiles（4字段）+ RLS 全策略
+- 独立审查打回（P0:3 + P1:7 + P2:7）→ 修复 10 项 → 复审全部通过（10/10）
+- 最终全面审查：15 migration + 15 revert 全部通过，3 轻微项不阻塞
+- 交付物：
+  - 15 个 Migration 文件（00-14）：36 张表，覆盖全部 10 个业务模块
+  - 15 个 Revert 脚本：完整回滚链路
+  - profiles 扩展：balance/runner_status/invite_code/referrer_id
+  - 所有表启用 RLS + 学校隔离 + Agent 策略
+  - service_role 豁免 trigger（M14）+ 权限提升修复（M12）+ 群成员校验（M12）
+- 统计：Phase 3 SQL 层共派生 3 分析Agent + 2 执行Agent + 4 审查Agent = 9 Agent
+- 状态更新：campus_status / iteration_current / campus_decisions / codebase_map / session_log 已同步
+- 下一步：Phase 3 Android 端（Room + Entity/DAO/Mapper + Repository + ViewModel + DI）
 
 - 执行Agent直接修复第1轮审查发现的全部4严重+6中等+若干轻微问题
 - 修复清单：

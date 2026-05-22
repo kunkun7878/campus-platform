@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +19,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -28,21 +26,18 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.campus.platform.data.auth.AuthRepository
-import com.campus.platform.data.model.Campus
-import com.campus.platform.data.model.School
-import com.campus.platform.data.school.SchoolRepository
-import kotlinx.coroutines.launch
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.campus.platform.navigation.CampusRoutes
+import com.campus.platform.ui.viewmodel.global.SchoolSelectViewModel
 
 /**
  * 学校-校区选择页。
@@ -52,77 +47,22 @@ import kotlinx.coroutines.launch
  * - 四川邮电职业技术学院（1 校区）：可跳过校区选择，直接确认
  * - 选校确认后回调写入 profiles，后续不可更改学校
  *
- * @param authRepository 用于写入用户选校
- * @param schoolRepository 用于查询学校/校区列表
- * @param onSchoolSelected 选校完成回调（导航至首页）
+ * Phase 3：使用 SchoolSelectViewModel 管理状态和业务逻辑。
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SchoolSelectScreen(
-    authRepository: AuthRepository,
-    schoolRepository: SchoolRepository,
-    onSchoolSelected: () -> Unit,
+    viewModel: SchoolSelectViewModel = hiltViewModel(),
+    navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 学校列表
-    var schools by remember { mutableStateOf<List<School>>(emptyList()) }
-    var allCampuses by remember { mutableStateOf<Map<String, List<Campus>>>(emptyMap()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var isSubmitting by remember { mutableStateOf(false) }
-
-    // 选择状态
-    var selectedSchool by remember { mutableStateOf<School?>(null) }
-    var selectedCampus by remember { mutableStateOf<Campus?>(null) }
-
-    // 加载学校数据
-    LaunchedEffect(Unit) {
-        try {
-            val schoolList = schoolRepository.getSchools()
-            schools = schoolList
-            val campusMap = mutableMapOf<String, List<Campus>>()
-            for (s in schoolList) {
-                campusMap[s.id] = schoolRepository.getCampuses(s.id)
-            }
-            allCampuses = campusMap
-        } catch (e: Exception) {
-            error = e.message ?: "加载学校列表失败"
-        } finally {
-            isLoading = false
-        }
-    }
-
-    // 当选中的学校变化时，如果只有一个校区自动选中
-    LaunchedEffect(selectedSchool) {
-        val school = selectedSchool ?: return@LaunchedEffect
-        val campuses = allCampuses[school.id] ?: emptyList()
-        if (campuses.size == 1) {
-            selectedCampus = campuses.first()
-        } else {
-            // 多校区时清除之前的校区选择
-            selectedCampus = null
-        }
-    }
-
-    fun confirmSelection() {
-        val school = selectedSchool ?: return
-        val campus = selectedCampus ?: return
-        scope.launch {
-            isSubmitting = true
-            try {
-                val uid = authRepository.currentUserId() ?: return@launch
-                authRepository.selectSchool(uid, school.id, campus.id)
-                onSchoolSelected()
-            } catch (e: Exception) {
-                scope.launch {
-                    snackbarHostState.showSnackbar(e.message ?: "选校失败，请重试")
-                }
-            } finally {
-                isSubmitting = false
-            }
+    // 错误 Snackbar
+    LaunchedEffect(state.error) {
+        state.error?.let {
+            snackbarHostState.showSnackbar(it)
         }
     }
 
@@ -143,7 +83,7 @@ fun SchoolSelectScreen(
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = if (selectedSchool == null) "请先选择您所在的学校"
+                text = if (state.selectedSchool == null) "请先选择您所在的学校"
                 else "请选择您的校区",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -152,11 +92,11 @@ fun SchoolSelectScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (isLoading) {
+            if (state.isLoading) {
                 CircularProgressIndicator()
-            } else if (error != null) {
+            } else if (state.error != null && state.schools.isEmpty()) {
                 Text(
-                    text = error ?: "加载失败",
+                    text = state.error ?: "加载失败",
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -169,8 +109,8 @@ fun SchoolSelectScreen(
                 ) {
                     Text(
                         text = "1. 选择学校",
-                        fontWeight = if (selectedSchool == null) FontWeight.Bold else FontWeight.Normal,
-                        color = if (selectedSchool == null) MaterialTheme.colorScheme.primary
+                        fontWeight = if (state.selectedSchool == null) FontWeight.Bold else FontWeight.Normal,
+                        color = if (state.selectedSchool == null) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -182,8 +122,8 @@ fun SchoolSelectScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "2. 选择校区",
-                        fontWeight = if (selectedSchool != null && selectedCampus == null) FontWeight.Bold else FontWeight.Normal,
-                        color = if (selectedSchool != null && selectedCampus == null) MaterialTheme.colorScheme.primary
+                        fontWeight = if (state.selectedSchool != null && state.selectedCampus == null) FontWeight.Bold else FontWeight.Normal,
+                        color = if (state.selectedSchool != null && state.selectedCampus == null) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -192,17 +132,17 @@ fun SchoolSelectScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ── 学校列表 ──
-                if (selectedSchool == null) {
+                if (state.selectedSchool == null) {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.weight(1f),
                     ) {
-                        items(schools) { school ->
-                            val campusCount = allCampuses[school.id]?.size ?: 0
+                        items(state.schools) { school ->
+                            val campusCount = state.allCampuses[school.id]?.size ?: 0
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { selectedSchool = school },
+                                    .clickable { viewModel.selectSchool(school) },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -233,7 +173,7 @@ fun SchoolSelectScreen(
                 }
 
                 // ── 校区列表 ──
-                if (selectedSchool != null) {
+                if (state.selectedSchool != null) {
                     // 已选学校卡片
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -247,21 +187,26 @@ fun SchoolSelectScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = "已选：${selectedSchool?.name ?: ""}",
+                                text = "已选：${state.selectedSchool?.name ?: ""}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.weight(1f),
                             )
-                            TextButtonStyled(
+                            Text(
                                 text = "重新选择",
-                                onClick = { selectedSchool = null; selectedCampus = null },
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier
+                                    .clickable { viewModel.clearSchoolSelection() }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    val campuses = selectedSchool?.let { allCampuses[it.id] } ?: emptyList()
+                    val campuses = state.selectedSchool?.let { state.allCampuses[it.id] } ?: emptyList()
 
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -271,10 +216,10 @@ fun SchoolSelectScreen(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { selectedCampus = campus },
+                                    .clickable { viewModel.selectCampus(campus) },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = if (selectedCampus?.id == campus.id)
+                                    containerColor = if (state.selectedCampus?.id == campus.id)
                                         MaterialTheme.colorScheme.primaryContainer
                                     else MaterialTheme.colorScheme.surfaceVariant,
                                 ),
@@ -304,11 +249,17 @@ fun SchoolSelectScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = { confirmSelection() },
-                    enabled = selectedSchool != null && selectedCampus != null && !isSubmitting,
+                    onClick = {
+                        viewModel.confirmSelection {
+                            navController.navigate(CampusRoutes.Home.route) {
+                                popUpTo("splash") { inclusive = true }
+                            }
+                        }
+                    },
+                    enabled = state.selectedSchool != null && state.selectedCampus != null && !state.isSubmitting,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    if (isSubmitting) {
+                    if (state.isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp,
@@ -321,23 +272,4 @@ fun SchoolSelectScreen(
             }
         }
     }
-}
-
-/**
- * 简化的 TextButton，用颜色区分而不是 Material3 样式。
- */
-@Composable
-private fun TextButtonStyled(
-    text: String,
-    onClick: () -> Unit,
-) {
-    Text(
-        text = text,
-        color = MaterialTheme.colorScheme.primary,
-        style = MaterialTheme.typography.bodySmall,
-        fontWeight = FontWeight.Medium,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-    )
 }

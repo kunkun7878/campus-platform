@@ -1,40 +1,42 @@
 # 校园聚合平台 - 当前状态
 
-<!-- last_sync: 2026-05-22T14:00 CST -->
+<!-- last_sync: 2026-05-22T20:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[iteration_current]] · [[campus_rules]] · [[campus_decisions]] · [[campus_open_questions]] · [[codebase_map]] · [[runtime_notes]] · [[campus_ui_decisions]] · [[campus_session_log]]
 
 ## 当前阶段
-**Android 正式开发 — Phase 2 完成 ✅ → Phase 3 待开始**
+**Android 正式开发 — Phase 3 完成 ✅ → Phase 4 待开始**
 原型阶段已完成（34 screen HTML 高保真原型）
-多Agent工作流验证：**15轮实战全部通过** ✅（含 Phase 2 审查）
+多Agent工作流验证：**21轮实战全部通过** ✅（含 Phase 3 完整流程）
 
 ## 当前已完成
 - HTML 高保真原型：34 screen ✅
-- 多Agent工作流：15轮实战验证通过 ✅
+- 多Agent工作流：18轮实战验证通过 ✅
 - 项目记忆系统：14个Markdown文件建立 + 持续维护 ✅
 - Skills体系：54个 skill 全部安装激活 ✅
 - 技术栈确定：Compose + Hilt + Navigation + Retrofit + Room + Coil + Supabase ✅
 - Phase 0: 环境搭建（AS + SDK + 项目创建 + 依赖 + git） ✅
 - Phase 1: 项目骨架 + 主题 + 导航（5 Tab + 34 route） ✅
 - Phase 2: 认证 + 选校 ✅
-  - Supabase 项目创建：campus-platform (ap-southeast-1)
-  - 6 个 SQL Migration（profiles/schools/campuses/wechat_identities + RLS + auth_triggers）
-  - Auth 模块：AuthRepository / AuthValidator / SchoolRepository / AuthModule
-  - AuthGuard 登录守卫（Login/SchoolSelect/Home 三态判定）
-  - 6 个 Screen：Login(双模式) / Register(3步) / PasswordReset / AccountDelete / SchoolSelect(两级)
-  - 2 个组件：PasswordStrengthBar / CaptchaDialog
-  - Supabase Kotlin SDK 3.1.2 集成
-  - 编译通过：./gradlew assembleDebug BUILD SUCCESSFUL
-  - SQL 待用户手动执行（Dashboard SQL Editor）
+- Phase 3: 数据层基座 ✅
+  - SQL 层：36 张表 DDL + 15 Migration + 15 Revert
+  - Room 层：25 Entity + 7 DAO + 7 Mapper + AppDatabase + TypeConverters
+  - Repository 层：16 接口 + 16 实现 + NetworkModule + RepositoryModule
+  - ViewModel 层：35 ViewModel + 全部 34 Screen 改造 + MainActivity/NavGraph 重构
+  - 编译验证：BUILD SUCCESSFUL（3轮编译修复）
+  - 审查验证：8轮审查（分析→修复→复审→终审），全部通过
+  - 新增文件：30 SQL + 93 Kotlin = 123 个文件
+  - SQL 待用户在 Supabase Dashboard 执行
 
 ## 已知限制
 - `verifyOtp()` SDK 兼容性问题（OtpType.Phone enum），密码登录正常可用
 - 微信登录代码搁置（需微信开放平台企业认证）
 - SQL migrations 需用户在 Supabase Dashboard 执行
+- Room destructive migration 为开发阶段策略，生产发布前需替换
+- DataStore 已移除 authToken（Supabase SDK 自行管理 session）
 
 ## 当前阻塞
 - Android Studio 中文插件暂无适配（平台253，等待JetBrains更新）
 
 ## 下一步
-1. Phase 3: 数据层基座（17张表DDL + Room + Retrofit + Repository）
+1. Phase 4: 跑腿全链路（8 screen — Home/Publish/OrderDetail/OrderList 等）

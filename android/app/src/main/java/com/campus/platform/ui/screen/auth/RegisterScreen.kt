@@ -26,12 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -39,11 +36,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.campus.platform.data.auth.AuthRepository
-import com.campus.platform.data.auth.AuthValidator
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.campus.platform.navigation.CampusRoutes
 import com.campus.platform.ui.component.CaptchaDialog
 import com.campus.platform.ui.component.PasswordStrengthBar
-import kotlinx.coroutines.launch
+import com.campus.platform.ui.viewmodel.auth.RegisterUiState
+import com.campus.platform.ui.viewmodel.auth.RegisterViewModel
 
 /**
  * 注册页 — 分步表单。
@@ -52,121 +51,41 @@ import kotlinx.coroutines.launch
  * Step 2: 设置密码 + 密码确认 + 邮箱选填
  * Step 3: 同意协议 → 完成注册
  *
- * 注册成功后回调 onRegisterSuccess，由 NavGraph 引导至选校。
+ * 注册成功后跳转选校。
  *
- * @param authRepository Supabase Auth 仓库（Hilt 注入）
- * @param onRegisterSuccess 注册成功回调（跳转选校）
- * @param onNavigateToLogin 返回登录
+ * Phase 3：使用 RegisterViewModel 管理状态，通过 navController 导航。
  */
 @Composable
 fun RegisterScreen(
-    authRepository: AuthRepository,
-    onRegisterSuccess: () -> Unit,
-    onNavigateToLogin: () -> Unit,
+    viewModel: RegisterViewModel = hiltViewModel(),
+    navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
+    val formState by viewModel.formState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 步骤
-    var currentStep by remember { mutableIntStateOf(1) }
-    val totalSteps = 3
-
-    // 表单状态
-    var phone by remember { mutableStateOf("") }
-    var otpCode by remember { mutableStateOf("") }
-    var otpSent by remember { mutableStateOf(false) }
-    var countdown by remember { mutableIntStateOf(0) }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var agreedToTerms by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-
-    var showCaptcha by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    // 倒计时
-    LaunchedEffect(countdown) {
-        if (countdown > 0) {
-            kotlinx.coroutines.delay(1000)
-            countdown--
-        }
-    }
-
-    fun showError(msg: String) {
-        error = msg
-        scope.launch { snackbarHostState.showSnackbar(msg) }
-    }
-
-    fun sendOtp() {
-        AuthValidator.validatePhone(phone)?.let { showError(it); return }
-        showCaptcha = true
-    }
-
-    fun onCaptchaVerified() {
-        showCaptcha = false
-        scope.launch {
-            isLoading = true
-            try {
-                authRepository.signInWithOtp(phone)
-                otpSent = true
-                countdown = 60
-            } catch (e: Exception) {
-                val msg = e.message ?: ""
-                if (msg.contains("already registered", ignoreCase = true) ||
-                    msg.contains("already exists", ignoreCase = true) ||
-                    msg.contains("User already", ignoreCase = true)
-                ) {
-                    showError("该手机号已注册，请直接登录")
-                } else {
-                    showError(e.message ?: "发送验证码失败")
-                }
-            } finally {
-                isLoading = false
+    // 注册成功导航
+    LaunchedEffect(uiState) {
+        if (uiState is RegisterUiState.Success) {
+            navController.navigate(CampusRoutes.SchoolSelect.route) {
+                popUpTo(CampusRoutes.Login.route) { inclusive = true }
             }
         }
     }
 
-    fun verifyOtpAndNext() {
-        AuthValidator.validateVerificationCode(otpCode)?.let { showError(it); return }
-        scope.launch {
-            isLoading = true
-            try {
-                authRepository.verifyOtp(phone, otpCode)
-                currentStep = 2
-            } catch (e: Exception) {
-                showError(e.message ?: "验证码错误或已过期")
-            } finally {
-                isLoading = false
-            }
+    // Snackbar 错误
+    LaunchedEffect(formState.error) {
+        formState.error?.let {
+            snackbarHostState.showSnackbar(it)
         }
     }
 
-    fun setPasswordAndNext() {
-        AuthValidator.validatePassword(password)?.let { showError(it); return }
-        if (password != confirmPassword) { showError("两次密码不一致"); return }
-        currentStep = 3
-    }
-
-    fun finishRegistration() {
-        scope.launch {
-            isLoading = true
-            try {
-                authRepository.signUpWithPhoneAndPassword(phone, password)
-                onRegisterSuccess()
-            } catch (e: Exception) {
-                showError(e.message ?: "注册失败，请稍后重试")
-            } finally {
-                isLoading = false
-            }
-        }
-    }
-
-    if (showCaptcha) {
+    // CAPTCHA 弹窗
+    if (formState.showCaptcha) {
         CaptchaDialog(
-            onDismiss = { showCaptcha = false },
-            onVerified = { onCaptchaVerified() },
+            onDismiss = { viewModel.onCaptchaDismiss() },
+            onVerified = { viewModel.onCaptchaVerified() },
         )
     }
 
@@ -190,22 +109,22 @@ fun RegisterScreen(
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Step $currentStep / $totalSteps",
+                text = "Step ${formState.currentStep} / ${formState.totalSteps}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             LinearProgressIndicator(
-                progress = { currentStep.toFloat() / totalSteps },
+                progress = { formState.currentStep.toFloat() / formState.totalSteps },
                 modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // ── Step 1: 手机号 + 验证码 ──
-            if (currentStep == 1) {
+            if (formState.currentStep == 1) {
                 OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it.take(11).filter { c -> c.isDigit() } },
+                    value = formState.phone,
+                    onValueChange = { viewModel.onPhoneChange(it) },
                     label = { Text("手机号") },
                     placeholder = { Text("请输入 11 位手机号") },
                     keyboardOptions = KeyboardOptions(
@@ -217,8 +136,8 @@ fun RegisterScreen(
                 )
 
                 OutlinedTextField(
-                    value = otpCode,
-                    onValueChange = { otpCode = it.take(6).filter { c -> c.isDigit() } },
+                    value = formState.otpCode,
+                    onValueChange = { viewModel.onOtpCodeChange(it) },
                     label = { Text("验证码") },
                     placeholder = { Text("请输入 6 位验证码") },
                     keyboardOptions = KeyboardOptions(
@@ -227,14 +146,14 @@ fun RegisterScreen(
                     ),
                     singleLine = true,
                     trailingIcon = {
-                        if (countdown > 0) {
+                        if (formState.countdown > 0) {
                             Text(
-                                text = "${countdown}s",
+                                text = "${formState.countdown}s",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(end = 8.dp),
                             )
-                        } else if (otpSent) {
-                            TextButton(onClick = { sendOtp() }) {
+                        } else if (formState.otpSent) {
+                            TextButton(onClick = { viewModel.sendOtp() }) {
                                 Text("重新获取", style = MaterialTheme.typography.bodySmall)
                             }
                         }
@@ -242,21 +161,21 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                if (!otpSent) {
+                if (!formState.otpSent) {
                     OutlinedButton(
-                        onClick = { sendOtp() },
-                        enabled = phone.length == 11 && !isLoading,
+                        onClick = { viewModel.sendOtp() },
+                        enabled = formState.phone.length == 11 && !formState.isLoading,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text("获取验证码")
                     }
                 } else {
                     Button(
-                        onClick = { verifyOtpAndNext() },
-                        enabled = otpCode.length == 6 && !isLoading,
+                        onClick = { viewModel.verifyOtpAndNext() },
+                        enabled = formState.otpCode.length == 6 && !formState.isLoading,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        if (isLoading) {
+                        if (formState.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp,
@@ -270,10 +189,10 @@ fun RegisterScreen(
             }
 
             // ── Step 2: 设置密码 ──
-            if (currentStep == 2) {
+            if (formState.currentStep == 2) {
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = formState.password,
+                    onValueChange = { viewModel.onPasswordChange(it) },
                     label = { Text("设置密码") },
                     placeholder = { Text("至少 8 位，包含字母和数字") },
                     keyboardOptions = KeyboardOptions(
@@ -285,11 +204,11 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                PasswordStrengthBar(password = password)
+                PasswordStrengthBar(password = formState.password)
 
                 OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
+                    value = formState.confirmPassword,
+                    onValueChange = { viewModel.onConfirmPasswordChange(it) },
                     label = { Text("确认密码") },
                     placeholder = { Text("请再次输入密码") },
                     keyboardOptions = KeyboardOptions(
@@ -298,8 +217,11 @@ fun RegisterScreen(
                     ),
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
-                    isError = confirmPassword.isNotEmpty() && password != confirmPassword,
-                    supportingText = if (confirmPassword.isNotEmpty() && password != confirmPassword) {
+                    isError = formState.confirmPassword.isNotEmpty() &&
+                        formState.password != formState.confirmPassword,
+                    supportingText = if (formState.confirmPassword.isNotEmpty() &&
+                        formState.password != formState.confirmPassword
+                    ) {
                         { Text("两次密码不一致") }
                     } else null,
                     modifier = Modifier.fillMaxWidth(),
@@ -307,8 +229,8 @@ fun RegisterScreen(
 
                 // 邮箱选填
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = formState.email,
+                    onValueChange = { viewModel.onEmailChange(it) },
                     label = { Text("邮箱（选填）") },
                     placeholder = { Text("example@campus.edu.cn") },
                     keyboardOptions = KeyboardOptions(
@@ -320,12 +242,12 @@ fun RegisterScreen(
                 )
 
                 Button(
-                    onClick = { setPasswordAndNext() },
-                    enabled = password.isNotEmpty()
-                        && confirmPassword.isNotEmpty()
-                        && password == confirmPassword
-                        && password.length >= 8
-                        && !isLoading,
+                    onClick = { viewModel.setPasswordAndNext() },
+                    enabled = formState.password.isNotEmpty()
+                        && formState.confirmPassword.isNotEmpty()
+                        && formState.password == formState.confirmPassword
+                        && formState.password.length >= 8
+                        && !formState.isLoading,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("下一步")
@@ -333,7 +255,7 @@ fun RegisterScreen(
             }
 
             // ── Step 3: 同意协议 ──
-            if (currentStep == 3) {
+            if (formState.currentStep == 3) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
@@ -347,8 +269,8 @@ fun RegisterScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Checkbox(
-                        checked = agreedToTerms,
-                        onCheckedChange = { agreedToTerms = it },
+                        checked = formState.agreedToTerms,
+                        onCheckedChange = { viewModel.onAgreedToTermsChange(it) },
                     )
                     Text(
                         text = "我已阅读并同意",
@@ -364,11 +286,11 @@ fun RegisterScreen(
                 }
 
                 Button(
-                    onClick = { finishRegistration() },
-                    enabled = agreedToTerms && !isLoading,
+                    onClick = { viewModel.finishRegistration() },
+                    enabled = formState.agreedToTerms && !formState.isLoading,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    if (isLoading) {
+                    if (formState.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp,
@@ -390,7 +312,7 @@ fun RegisterScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                TextButton(onClick = onNavigateToLogin) {
+                TextButton(onClick = { navController.popBackStack() }) {
                     Text("立即登录", style = MaterialTheme.typography.bodySmall)
                 }
             }

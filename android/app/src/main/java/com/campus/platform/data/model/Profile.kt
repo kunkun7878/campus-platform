@@ -20,6 +20,13 @@ data class Profile(
     @SerialName("is_agent")
     val isAgent: Boolean = false,
     val status: Int = 0,
+    val balance: Int = 0,
+    @SerialName("runner_status")
+    val runnerStatus: String = "none",
+    @SerialName("invite_code")
+    val inviteCode: String? = null,
+    @SerialName("referrer_id")
+    val referrerId: String? = null,
     @SerialName("deleted_at")
     val deletedAt: String? = null,
     @SerialName("created_at")

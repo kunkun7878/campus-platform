@@ -1,6 +1,6 @@
 # 校园聚合平台 - 代码/页面事实地图
 
-<!-- last_sync: 2026-05-22T14:00 CST -->
+<!-- last_sync: 2026-05-22T20:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[runtime_notes]]
 
@@ -89,6 +89,69 @@ android/
 | my-sold | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
 | my-bought | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
 | my-favorites | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
+
+## Supabase 数据库
+
+### Migration 文件（15 个 + 15 Revert）
+
+| Migration | 文件 | 表 | 模块 |
+|-----------|------|-----|------|
+| 00 | create_profiles | profiles + trigger | 用户 |
+| 01 | create_schools_campuses | schools, campuses | 学校 |
+| 02 | seed_data | 种子数据（2学校4校区） | 学校 |
+| 03 | rls_policies | RLS 全策略 + helper 函数 | 安全 |
+| 04 | wechat_identities | wechat_identities | 认证 |
+| 05 | add_indexes | profiles.school_id 索引 | 性能 |
+| 06 | runner_module | runner_tasks, runner_orders, runner_reviews, user_addresses | 跑腿 + 地址 |
+| 07 | market_module | market_listings, market_orders, user_favorites | 二手 + 收藏 |
+| 08 | lost_found_module | lost_found_items, lost_found_claims | 失物 |
+| 09 | community_module | community_posts, community_comments, official_groups | 社区 |
+| 10 | notifications | notifications | 通知 |
+| 11 | runner_after_sale_supplement | runner_applications, order_timeline, after_sales, after_sale_timeline | 跑腿 + 售后 |
+| 12 | messaging_social | post_likes, conversations, messages, group_messages, group_members | 消息 + 点赞 |
+| 13 | wallet_system | wallets, wallet_transactions, announcements, coupons, user_coupons | 钱包 + 系统 |
+| 14 | misc_alter_profiles | feedbacks, invite_codes, invite_records, login_codes, attachments + ALTER profiles | 杂项 + 扩展 |
+
+### 数据库表完整清单（36 张）
+
+| 模块 | 表名 | Migration | 隔离策略 |
+|------|------|-----------|---------|
+| 用户 | profiles | 00 | school_id（已有） |
+| 学校 | schools | 01 | 全局可读（已有） |
+| 学校 | campuses | 01 | 全局可读（已有） |
+| 认证 | wechat_identities | 04 | user_id（已有） |
+| 跑腿 | runner_tasks | 06 | school_id |
+| 跑腿 | runner_orders | 06 | school_id |
+| 跑腿 | runner_reviews | 06 | school_id |
+| 地址 | user_addresses | 06 | user_id |
+| 二手 | market_listings | 07 | school_id |
+| 二手 | market_orders | 07 | school_id |
+| 收藏 | user_favorites | 07 | user_id |
+| 失物 | lost_found_items | 08 | school_id |
+| 失物 | lost_found_claims | 08 | school_id |
+| 社区 | community_posts | 09 | school_id |
+| 社区 | community_comments | 09 | school_id |
+| 社区 | official_groups | 09 | school_id |
+| 通知 | notifications | 10 | user_id |
+| 跑腿 | runner_applications | 11 | school_id |
+| 跑腿 | order_timeline | 11 | JOIN runner_orders |
+| 售后 | after_sales | 11 | school_id |
+| 售后 | after_sale_timeline | 11 | JOIN after_sales |
+| 社区 | post_likes | 12 | JOIN community_posts |
+| 消息 | conversations | 12 | participant |
+| 消息 | messages | 12 | JOIN conversations |
+| 消息 | group_messages | 12 | JOIN official_groups |
+| 消息 | group_members | 12 | user_id + JOIN |
+| 钱包 | wallets | 13 | user_id |
+| 钱包 | wallet_transactions | 13 | user_id |
+| 系统 | announcements | 13 | school_id(NULL=全平台) |
+| 系统 | coupons | 13 | Agent管理 |
+| 系统 | user_coupons | 13 | user_id |
+| 系统 | feedbacks | 14 | user_id |
+| 系统 | invite_codes | 14 | user_id |
+| 系统 | invite_records | 14 | inviter_id |
+| 认证 | login_codes | 14 | service_role only |
+| 附件 | attachments | 14 | user_id |
 
 ## 页面切换机制
 

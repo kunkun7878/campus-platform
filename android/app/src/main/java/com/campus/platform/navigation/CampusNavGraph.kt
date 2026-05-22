@@ -7,12 +7,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -21,9 +20,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.campus.platform.data.auth.AuthRepository
-import com.campus.platform.data.model.Profile
-import com.campus.platform.data.school.SchoolRepository
 import com.campus.platform.ui.component.CampusMainScaffold
 import com.campus.platform.ui.screen.auth.AccountDeleteScreen
 import com.campus.platform.ui.screen.auth.LoginScreen
@@ -61,29 +57,28 @@ import com.campus.platform.ui.screen.profile.RunnerApplyScreen
 import com.campus.platform.ui.screen.profile.WalletScreen
 import com.campus.platform.ui.screen.publish.PublishHubScreen
 import com.campus.platform.ui.screen.publish.PublishScreen
+import com.campus.platform.ui.viewmodel.SplashViewModel
 
 /**
  * 校园平台全量导航图。
  *
- * Phase 2 更新：
- * - startDestination 使用 AuthGuard 动态判定（通过 Splash screen 中转）
- * - 新增 PasswordReset、AccountDelete 路由
- * - 认证 screen 全部接收 AuthRepository/SchoolRepository 参数
- * - 5 个 Tab 嵌套图保持不变
+ * Phase 3 更新（ViewModel 全面迁移）：
+ * - 移除 authRepository / schoolRepository 参数，所有依赖由 ViewModel 通过 Hilt 注入
+ * - Splash 和 post-auth 路由使用 SplashViewModel
+ * - 所有 Screen 调用改为 (viewModel, navController) 签名
+ * - Screen 内部通过 navController.navigate() 跳转，不再需要 lambda 回调
  *
  * 认证流程：
  * App 启动 → Splash 检查 auth → Login / SchoolSelect / Home
- * Login → 成功 → SchoolSelect（未选校）/ Home（已选校）
+ * Login → 成功 → post-auth → SchoolSelect（未选校）/ Home（已选校）
  * Register → 成功 → SchoolSelect
- * PasswordReset → 成功 → SchoolSelect（未选校）/ Home（已选校）
+ * PasswordReset → 成功 → post-auth → SchoolSelect / Home
  * SchoolSelect → 确认 → Home（清空回退栈）
  * AccountDelete → 完成 → Login（清空回退栈）
  */
 @Composable
 fun CampusNavGraph(
     navController: NavHostController,
-    authRepository: AuthRepository,
-    schoolRepository: SchoolRepository,
     modifier: Modifier = Modifier,
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -110,25 +105,16 @@ fun CampusNavGraph(
             modifier = contentModifier,
         ) {
             // ═══════════════════════════════════════════
-            // Splash — AuthGuard 判定入口
+            // Splash — AuthGuard 判定入口（使用 SplashViewModel）
             // ═══════════════════════════════════════════
             composable("splash") {
-                var destination by remember { mutableStateOf<AppStartDestination?>(null) }
-                var profile by remember { mutableStateOf<Profile?>(null) }
+                val splashViewModel: SplashViewModel = hiltViewModel()
+                val uiState by splashViewModel.uiState.collectAsState()
 
-                LaunchedEffect(Unit) {
-                    val session = authRepository.getSession()
-                    val isAuth = session != null
-                    if (isAuth) {
-                        profile = authRepository.getProfile()
-                    }
-                    destination = determineStartDestination(isAuth, profile)
-                }
-
-                if (destination != null) {
-                    LaunchedEffect(destination) {
-                        val target = destination?.route ?: return@LaunchedEffect
-                        navController.navigate(target) {
+                LaunchedEffect(uiState) {
+                    if (uiState is SplashViewModel.SplashUiState.Destination) {
+                        val state = uiState as SplashViewModel.SplashUiState.Destination
+                        navController.navigate(state.target.route) {
                             popUpTo("splash") { inclusive = true }
                         }
                     }
@@ -138,7 +124,17 @@ fun CampusNavGraph(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    when (val state = uiState) {
+                        is SplashViewModel.SplashUiState.Loading ->
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        is SplashViewModel.SplashUiState.Error ->
+                            Text(
+                                text = state.message,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        is SplashViewModel.SplashUiState.Destination ->
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
                 }
             }
 
@@ -148,17 +144,22 @@ fun CampusNavGraph(
 
             // Post-auth 路由：统一处理登录/注册后的 profile 检查
             composable("post-auth") {
+                val splashViewModel: SplashViewModel = hiltViewModel()
+                val uiState by splashViewModel.uiState.collectAsState()
+
                 LaunchedEffect(Unit) {
-                    val profile = authRepository.getProfile()
-                    val target = if (profile != null && profile.schoolId != null && profile.campusId != null) {
-                        CampusRoutes.Home.route
-                    } else {
-                        CampusRoutes.SchoolSelect.route
-                    }
-                    navController.navigate(target) {
-                        popUpTo("splash") { inclusive = true }
+                    splashViewModel.determinePostAuthDestination()
+                }
+
+                LaunchedEffect(uiState) {
+                    if (uiState is SplashViewModel.SplashUiState.Destination) {
+                        val state = uiState as SplashViewModel.SplashUiState.Destination
+                        navController.navigate(state.target.route) {
+                            popUpTo("splash") { inclusive = true }
+                        }
                     }
                 }
+
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
@@ -168,67 +169,23 @@ fun CampusNavGraph(
             }
 
             composable(CampusRoutes.SchoolSelect.route) {
-                SchoolSelectScreen(
-                    authRepository = authRepository,
-                    schoolRepository = schoolRepository,
-                    onSchoolSelected = {
-                        navController.navigate(CampusRoutes.Home.route) {
-                            popUpTo("splash") { inclusive = true }
-                        }
-                    },
-                )
+                SchoolSelectScreen(navController = navController)
             }
 
             composable(CampusRoutes.Login.route) {
-                LoginScreen(
-                    authRepository = authRepository,
-                    onLoginSuccess = {
-                        navController.navigate("post-auth")
-                    },
-                    onNavigateToRegister = {
-                        navController.navigate(CampusRoutes.Register.route)
-                    },
-                    onNavigateToPasswordReset = {
-                        navController.navigate(CampusRoutes.PasswordReset.route)
-                    },
-                )
+                LoginScreen(navController = navController)
             }
 
             composable(CampusRoutes.Register.route) {
-                RegisterScreen(
-                    authRepository = authRepository,
-                    onRegisterSuccess = {
-                        navController.navigate(CampusRoutes.SchoolSelect.route) {
-                            popUpTo(CampusRoutes.Login.route) { inclusive = true }
-                        }
-                    },
-                    onNavigateToLogin = {
-                        navController.popBackStack()
-                    },
-                )
+                RegisterScreen(navController = navController)
             }
 
             composable(CampusRoutes.PasswordReset.route) {
-                PasswordResetScreen(
-                    authRepository = authRepository,
-                    onNavigateToLogin = {
-                        navController.popBackStack()
-                    },
-                )
+                PasswordResetScreen(navController = navController)
             }
 
             composable(CampusRoutes.AccountDelete.route) {
-                AccountDeleteScreen(
-                    authRepository = authRepository,
-                    onDeleteComplete = {
-                        navController.navigate(CampusRoutes.Login.route) {
-                            popUpTo("splash") { inclusive = true }
-                        }
-                    },
-                    onCancel = {
-                        navController.popBackStack()
-                    },
-                )
+                AccountDeleteScreen(navController = navController)
             }
 
             // ═══════════════════════════════════════════
@@ -238,41 +195,41 @@ fun CampusNavGraph(
                 startDestination = CampusRoutes.Home.route,
             ) {
                 composable(CampusRoutes.Home.route) {
-                    HomeScreen()
+                    HomeScreen(navController = navController)
                 }
 
                 composable<GoodsDetail> {
-                    GoodsDetailScreen()
+                    GoodsDetailScreen(navController = navController)
                 }
                 composable<LostDetail> {
-                    LostDetailScreen()
+                    LostDetailScreen(navController = navController)
                 }
                 composable<LostClaim> {
-                    LostClaimScreen()
+                    LostClaimScreen(navController = navController)
                 }
                 composable(
                     route = CampusRoutes.OrderDetail.route,
                     arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
                 ) {
-                    OrderDetailScreen()
+                    OrderDetailScreen(navController = navController)
                 }
                 composable(CampusRoutes.OrderList.route) {
-                    OrderListScreen()
+                    OrderListScreen(navController = navController)
                 }
                 composable(
                     route = CampusRoutes.AfterSaleApply.route,
                     arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
                 ) {
-                    AfterSaleApplyScreen()
+                    AfterSaleApplyScreen(navController = navController)
                 }
                 composable(
                     route = CampusRoutes.AfterSaleDetail.route,
                     arguments = listOf(navArgument("saleId") { type = NavType.StringType }),
                 ) {
-                    AfterSaleDetailScreen()
+                    AfterSaleDetailScreen(navController = navController)
                 }
                 composable<AnnouncementDetail> {
-                    AnnouncementDetailScreen()
+                    AnnouncementDetailScreen(navController = navController)
                 }
             }
 
@@ -283,16 +240,16 @@ fun CampusNavGraph(
                 startDestination = CampusRoutes.PublishHub.route,
             ) {
                 composable(CampusRoutes.PublishHub.route) {
-                    PublishHubScreen()
+                    PublishHubScreen(navController = navController)
                 }
                 composable(CampusRoutes.Publish.route) {
-                    PublishScreen()
+                    PublishScreen(navController = navController)
                 }
                 composable(CampusRoutes.MarketPublish.route) {
-                    MarketPublishScreen()
+                    MarketPublishScreen(navController = navController)
                 }
                 composable(CampusRoutes.LostPublish.route) {
-                    LostPublishScreen()
+                    LostPublishScreen(navController = navController)
                 }
             }
 
@@ -303,22 +260,22 @@ fun CampusNavGraph(
                 startDestination = CampusRoutes.Community.route,
             ) {
                 composable(CampusRoutes.Community.route) {
-                    CommunityScreen()
+                    CommunityScreen(navController = navController)
                 }
                 composable(
                     route = CampusRoutes.PostDetail.route,
                     arguments = listOf(navArgument("postId") { type = NavType.StringType }),
                 ) {
-                    PostDetailScreen()
+                    PostDetailScreen(navController = navController)
                 }
                 composable(CampusRoutes.PostCreate.route) {
-                    PostCreateScreen()
+                    PostCreateScreen(navController = navController)
                 }
                 composable(
                     route = CampusRoutes.GroupChat.route,
                     arguments = listOf(navArgument("chatId") { type = NavType.StringType }),
                 ) {
-                    GroupChatScreen()
+                    GroupChatScreen(navController = navController)
                 }
             }
 
@@ -329,13 +286,13 @@ fun CampusNavGraph(
                 startDestination = CampusRoutes.Message.route,
             ) {
                 composable(CampusRoutes.Message.route) {
-                    MessageScreen()
+                    MessageScreen(navController = navController)
                 }
                 composable(
                     route = CampusRoutes.ChatDetail.route,
                     arguments = listOf(navArgument("chatId") { type = NavType.StringType }),
                 ) {
-                    ChatDetailScreen()
+                    ChatDetailScreen(navController = navController)
                 }
             }
 
@@ -346,40 +303,40 @@ fun CampusNavGraph(
                 startDestination = CampusRoutes.Profile.route,
             ) {
                 composable(CampusRoutes.Profile.route) {
-                    ProfileScreen()
+                    ProfileScreen(navController = navController)
                 }
                 composable(CampusRoutes.Wallet.route) {
-                    WalletScreen()
+                    WalletScreen(navController = navController)
                 }
                 composable(CampusRoutes.RunnerApply.route) {
-                    RunnerApplyScreen()
+                    RunnerApplyScreen(navController = navController)
                 }
                 composable(CampusRoutes.AddressManage.route) {
-                    AddressManageScreen()
+                    AddressManageScreen(navController = navController)
                 }
                 composable(CampusRoutes.Coupons.route) {
-                    CouponsScreen()
+                    CouponsScreen(navController = navController)
                 }
                 composable(CampusRoutes.Invite.route) {
-                    InviteScreen()
+                    InviteScreen(navController = navController)
                 }
                 composable(CampusRoutes.Feedback.route) {
-                    FeedbackScreen()
+                    FeedbackScreen(navController = navController)
                 }
                 composable(CampusRoutes.About.route) {
-                    AboutScreen()
+                    AboutScreen(navController = navController)
                 }
                 composable(CampusRoutes.MyPublished.route) {
-                    MyPublishedScreen()
+                    MyPublishedScreen(navController = navController)
                 }
                 composable(CampusRoutes.MySold.route) {
-                    MySoldScreen()
+                    MySoldScreen(navController = navController)
                 }
                 composable(CampusRoutes.MyBought.route) {
-                    MyBoughtScreen()
+                    MyBoughtScreen(navController = navController)
                 }
                 composable(CampusRoutes.MyFavorites.route) {
-                    MyFavoritesScreen()
+                    MyFavoritesScreen(navController = navController)
                 }
             }
         }

@@ -22,19 +22,20 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.campus.platform.data.auth.AuthRepository
-import kotlinx.coroutines.launch
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.campus.platform.navigation.CampusRoutes
+import com.campus.platform.ui.viewmodel.auth.AccountDeleteUiState
+import com.campus.platform.ui.viewmodel.auth.AccountDeleteViewModel
 
 /**
  * 账号注销页。
@@ -44,47 +45,31 @@ import kotlinx.coroutines.launch
  * - 第二步：二次确认输入
  * - 调用 deleteAccount() 软删除并退出登录
  *
- * @param authRepository Supabase Auth 仓库
- * @param onDeleteComplete 注销完成回调（返回 LoginScreen）
- * @param onCancel 取消回调（返回上一页）
+ * Phase 3：使用 AccountDeleteViewModel 管理状态，通过 navController 导航。
  */
 @Composable
 fun AccountDeleteScreen(
-    authRepository: AuthRepository,
-    onDeleteComplete: () -> Unit,
-    onCancel: () -> Unit,
+    viewModel: AccountDeleteViewModel = hiltViewModel(),
+    navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
+    val formState by viewModel.formState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var currentStep by remember { mutableIntStateOf(1) }  // 1=确认 2=最终确认
-    var reason by remember { mutableStateOf("") }
-    var reasonOther by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-
-    val reasonOptions = listOf(
-        "不再需要使用",
-        "已有其他学校账号",
-        "隐私安全考虑",
-        "功能不满足需求",
-        "其他原因",
-    )
-
-    var selectedReason by remember { mutableIntStateOf(-1) }
-
-    fun performDelete() {
-        scope.launch {
-            isLoading = true
-            try {
-                val finalReason = if (selectedReason == reasonOptions.size - 1) reasonOther else reasonOptions.getOrNull(selectedReason)
-                authRepository.deleteAccount(finalReason)
-                onDeleteComplete()
-            } catch (e: Exception) {
-                snackbarHostState.showSnackbar(e.message ?: "注销失败，请稍后重试")
-            } finally {
-                isLoading = false
+    // 注销成功导航
+    LaunchedEffect(uiState) {
+        if (uiState is AccountDeleteUiState.Success) {
+            navController.navigate(CampusRoutes.Login.route) {
+                popUpTo("splash") { inclusive = true }
             }
+        }
+    }
+
+    // Snackbar 错误
+    LaunchedEffect(formState.error) {
+        formState.error?.let {
+            snackbarHostState.showSnackbar(it)
         }
     }
 
@@ -110,7 +95,7 @@ fun AccountDeleteScreen(
             )
 
             // ── Step 1: 选择原因 ──
-            if (currentStep == 1) {
+            if (formState.currentStep == 1) {
                 Text(
                     text = "很抱歉看到您离开。注销后您的账号将被停用，\n您发布的内容将保留但不可见。",
                     style = MaterialTheme.typography.bodyMedium,
@@ -126,15 +111,15 @@ fun AccountDeleteScreen(
                     fontWeight = FontWeight.Medium,
                 )
 
-                reasonOptions.forEachIndexed { index, label ->
+                viewModel.reasonOptions.forEachIndexed { index, label ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         OutlinedButton(
-                            onClick = { selectedReason = index },
+                            onClick = { viewModel.onSelectReason(index) },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = if (selectedReason == index) {
+                            colors = if (formState.selectedReason == index) {
                                 ButtonDefaults.outlinedButtonColors(
                                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                                 )
@@ -152,10 +137,10 @@ fun AccountDeleteScreen(
                 }
 
                 // 选"其他"时的补充输入
-                if (selectedReason == reasonOptions.size - 1) {
+                if (formState.selectedReason == viewModel.reasonOptions.size - 1) {
                     OutlinedTextField(
-                        value = reasonOther,
-                        onValueChange = { reasonOther = it },
+                        value = formState.reasonOther,
+                        onValueChange = { viewModel.onReasonOtherChange(it) },
                         label = { Text("请说明具体原因") },
                         maxLines = 3,
                         modifier = Modifier.fillMaxWidth(),
@@ -163,7 +148,7 @@ fun AccountDeleteScreen(
                 }
 
                 Button(
-                    onClick = { currentStep = 2 },
+                    onClick = { viewModel.onContinueToConfirm() },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
@@ -174,7 +159,7 @@ fun AccountDeleteScreen(
             }
 
             // ── Step 2: 最终确认 ──
-            if (currentStep == 2) {
+            if (formState.currentStep == 2) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
@@ -213,20 +198,20 @@ fun AccountDeleteScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     OutlinedButton(
-                        onClick = onCancel,
+                        onClick = { navController.popBackStack() },
                         modifier = Modifier.weight(1f),
                     ) {
                         Text("我再想想")
                     }
                     Button(
-                        onClick = { performDelete() },
+                        onClick = { viewModel.performDelete() },
                         modifier = Modifier.weight(1f),
-                        enabled = !isLoading,
+                        enabled = !formState.isLoading,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.error,
                         ),
                     ) {
-                        if (isLoading) {
+                        if (formState.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp,
@@ -240,9 +225,9 @@ fun AccountDeleteScreen(
             }
 
             // ── 取消按钮 ──
-            if (currentStep == 1) {
+            if (formState.currentStep == 1) {
                 OutlinedButton(
-                    onClick = onCancel,
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("取消")
