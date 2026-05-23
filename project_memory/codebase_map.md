@@ -51,7 +51,7 @@ android/
 │       └── res/
 ```
 
-## 已验证页面/screen 清单（来自真实 HTML）— 共34个
+## 已验证页面/screen 清单（来自真实 HTML + Phase 2 新增）— 共36个
 
 | 页面/screen | 来源 | 状态 |
 |-------------|------|------|
@@ -76,6 +76,8 @@ android/
 | **group-chat** | 真实 HTML `screenConfigs` | 已验证（Batch2-T11新增，群聊多人气泡） |
 | login | 真实 HTML `screenConfigs` | ✅ Phase 2 已实现（双模式：OTP + 密码） |
 | register | 真实 HTML `screenConfigs` | ✅ Phase 2 已实现（3步分步表单 + 密码强度） |
+| **password-reset** | Phase 2 新增 | ✅ Phase 2 已实现 |
+| **account-delete** | Phase 2 新增 | ✅ Phase 2 已实现 |
 | market-publish | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
 | lost-publish | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
 | wallet | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
