@@ -4,4 +4,5 @@
     <!-- 注意：allowBackup="false" 已在 AndroidManifest 中设置，此文件为保险配置 -->
     <include domain="sharedpref" path="." />
     <exclude domain="sharedpref" path="campus_secure_prefs.xml" />
+    <exclude domain="sharedpref" path="campus_db_secure_prefs.xml" />
 </full-backup-content>

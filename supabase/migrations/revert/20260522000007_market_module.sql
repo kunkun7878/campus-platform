@@ -28,6 +28,7 @@ DROP TABLE IF EXISTS public.market_orders CASCADE;
 
 -- 3. user_favorites
 DROP POLICY IF EXISTS user_favorites_select_policy ON public.user_favorites;
+DROP POLICY IF EXISTS user_favorites_agent_select_policy ON public.user_favorites;
 DROP POLICY IF EXISTS user_favorites_insert_policy ON public.user_favorites;
 DROP POLICY IF EXISTS user_favorites_delete_policy ON public.user_favorites;
 ALTER TABLE IF EXISTS public.user_favorites DISABLE ROW LEVEL SECURITY;

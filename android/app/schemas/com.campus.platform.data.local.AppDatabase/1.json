@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "eeb0e3729b0cc9b2e0c45b90441c7fb9",
+    "identityHash": "19e2ab05bf34183daaa1ff01eb989494",
     "entities": [
       {
         "tableName": "schools",
@@ -90,7 +90,7 @@
       },
       {
         "tableName": "profiles",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `phone` TEXT, `email` TEXT, `emailVerifiedAt` TEXT, `nickname` TEXT, `avatarUrl` TEXT, `schoolId` TEXT, `campusId` TEXT, `isAgent` INTEGER NOT NULL, `status` INTEGER NOT NULL, `balance` INTEGER NOT NULL, `runnerStatus` TEXT NOT NULL, `inviteCode` TEXT, `referrerId` TEXT, `deletedAt` TEXT, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `phone` TEXT, `email` TEXT, `emailVerifiedAt` TEXT, `nickname` TEXT, `avatarUrl` TEXT, `schoolId` TEXT, `campusId` TEXT, `isAgent` INTEGER NOT NULL, `status` INTEGER NOT NULL, `runnerStatus` TEXT NOT NULL, `inviteCode` TEXT, `referrerId` TEXT, `deletedAt` TEXT, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -142,12 +142,6 @@
           {
             "fieldPath": "status",
             "columnName": "status",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "balance",
-            "columnName": "balance",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -1757,7 +1751,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'eeb0e3729b0cc9b2e0c45b90441c7fb9')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '19e2ab05bf34183daaa1ff01eb989494')"
     ]
   }
 }

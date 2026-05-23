@@ -8,6 +8,7 @@ import com.campus.platform.data.model.Profile
 import com.campus.platform.domain.repository.IUserRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +43,11 @@ class UserRepository @Inject constructor(
             if (profile != null) {
                 userDao.upsertProfile(profile.toEntity())
             }
-        } catch (e: Exception) { if (e is CancellationException) throw e }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Refresh error", e)
+        }
     }
 
     override suspend fun updateProfile(
@@ -77,6 +82,10 @@ class UserRepository @Inject constructor(
             if (wallet != null) {
                 userDao.upsertWallet(wallet.toEntity())
             }
-        } catch (e: Exception) { if (e is CancellationException) throw e }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Refresh error", e)
+        }
     }
 }

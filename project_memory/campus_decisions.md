@@ -1,6 +1,6 @@
 # 校园聚合平台 - 已确认决策
 
-<!-- last_sync: 2026-05-22T18:00 CST -->
+<!-- last_sync: 2026-05-23T10:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_rules]] · [[campus_work_rules]] · [[campus_open_questions]] · [[iteration_current]] · [[codebase_map]] · [[campus_ui_decisions]]
 
@@ -77,7 +77,7 @@
 
 ### RLS 设计
 28. login_codes：service_role only，客户端无 policy（参照 wechat_identities）
-29. profiles 敏感字段（balance/runner_status/invite_code）：trigger 保护，用户不可自改
+29. profiles 敏感字段（runner_status/invite_code）：trigger 保护，用户不可自改；balance 权威来源已移至 wallets.balance
 30. announcements.school_id：NULL = 全平台公告，有值 = 仅该校可见
 31. wallet_transactions：append-only，无 updated_at
 32. group_messages/members：通过 JOIN official_groups.school_id 实现学校隔离

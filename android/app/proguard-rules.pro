@@ -34,7 +34,7 @@
 # 保护序列化/反序列化所需的所有 data class（Kotlinx Serialization / Room / Gson）
 -keep class com.campus.platform.data.** { *; }
 -keep class com.campus.platform.model.** { *; }
--keep class com.campus.platform.entity.** { *; }
+-keep class com.campus.platform.data.local.entity.** { *; }
 
 # 保留 Kotlin data class 的 componentN / copy / toString（反射用）
 -keepclassmembers class com.campus.platform.** {
@@ -44,8 +44,8 @@
 }
 
 # Supabase Kotlin SDK
--keep class io.github.jan-tennert.supabase.** { *; }
--dontwarn io.github.jan-tennert.supabase.**
+-keep class io.github.jan.supabase.** { *; }
+-dontwarn io.github.jan.supabase.**
 
 # SQLCipher
 -keep class net.zetetic.** { *; }

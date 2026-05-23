@@ -1,9 +1,32 @@
 # 校园聚合平台 - 会话推进日志
 
-<!-- last_sync: 2026-05-22T20:00 CST -->
+<!-- last_sync: 2026-05-23T10:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[iteration_current]]
 > 历史日志已归档到：[[archive/session_log_2026-05]]
+
+## 2026-05-23
+
+### 10:00 - Android 端 profiles.balance 残留引用清理
+
+- SQL migration 14 已将 balance 权威来源从 profiles 迁移到 wallets
+- Android 端清理：3 文件 4 处删除 `balance` 字段/映射行
+  - Profile.kt：删除 `val balance: Int = 0,`（DTO 字段）
+  - UserEntities.kt：删除 ProfileEntity 中的 `val balance: Int = 0,`（Room Entity，WalletEntity 保留）
+  - UserMappers.kt：删除 Profile.toEntity() 和 ProfileEntity.toDto() 中的 `balance = balance,`（Wallet mapper 保留）
+- 编译验证：BUILD SUCCESSFUL
+- 记忆同步：campus_session_log + campus_decisions #29 更新
+
+### 10:30 - profiles.balance 变更独立审查通过
+
+- 审查Agent独立审查 3 文件变更，全量搜索 58 Kotlin 源码文件
+- 审查结论：**通过**
+  - profiles.balance 残留：0 处（已全部清理）
+  - wallets.balance 误删：0 处（WalletEntity + WalletDto + 双向 mapper 完整保留）
+  - 编译：BUILD SUCCESSFUL
+  - 遗漏引用：0 处（DAO/Repository/AuthRepository/DI/UI 层全部无残留）
+- 验证方法：全代码库 grep balance + 全量文件读取交叉比对
+- Skill：verification-before-completion + campus-memory-sync
 
 ## 2026-05-22
 

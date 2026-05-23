@@ -226,6 +226,13 @@ CREATE POLICY user_favorites_insert_policy ON public.user_favorites
     TO authenticated
     WITH CHECK (user_id = auth.uid());
 
+-- Agent 可查看所有收藏（客服排查）
+DROP POLICY IF EXISTS user_favorites_agent_select_policy ON public.user_favorites;
+CREATE POLICY user_favorites_agent_select_policy ON public.user_favorites
+    FOR SELECT
+    TO authenticated
+    USING (public.is_agent());
+
 -- user_favorites 无 UPDATE policy（收藏记录无需修改，只有新增/删除）
 
 DROP POLICY IF EXISTS user_favorites_delete_policy ON public.user_favorites;

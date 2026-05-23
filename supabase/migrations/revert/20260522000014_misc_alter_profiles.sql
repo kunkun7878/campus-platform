@@ -54,9 +54,6 @@ DROP FUNCTION IF EXISTS public.check_profiles_sensitive_fields();
 -- ── profiles 回滚：撤销新增字段 ────────────────────────────
 
 ALTER TABLE IF EXISTS public.profiles
-    DROP COLUMN IF EXISTS balance;
-
-ALTER TABLE IF EXISTS public.profiles
     DROP COLUMN IF EXISTS runner_status;
 
 ALTER TABLE IF EXISTS public.profiles

@@ -147,7 +147,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, pg_temp;
 
 -- 应用 trigger
 DROP TRIGGER IF EXISTS trg_group_members_check_role ON public.group_members;

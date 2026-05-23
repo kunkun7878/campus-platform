@@ -36,10 +36,6 @@
 
 ### Phase 2 任务（已完成 ✅）
 
-[... 后续不变 ...]
-
-### Phase 2 任务（已完成 ✅）
-
 - [x] Supabase 项目创建：campus-platform (ap-southeast-1)
 - [x] 6 个 SQL Migration（profiles/schools/campuses/wechat_identities/RLS + auth_triggers）
 - [x] 种子数据：四川师范大学（3校区）+ 四川邮电职业技术学院（1校区）

@@ -15,7 +15,6 @@ data class ProfileEntity(
     val campusId: String? = null,
     val isAgent: Boolean = false,
     val status: Int = 0,
-    val balance: Int = 0,
     val runnerStatus: String = ProfileEntity.RUNNER_STATUS_NONE,
     val inviteCode: String? = null,
     val referrerId: String? = null,

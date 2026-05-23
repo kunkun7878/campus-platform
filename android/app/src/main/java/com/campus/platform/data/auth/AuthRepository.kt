@@ -62,9 +62,10 @@ class AuthRepository @Inject constructor(
      * 预期调用：supabase.auth.verifyPhoneOtp(type = OtpType.Phone, phone = "...", token = "...")
      */
     suspend fun verifyOtp(phone: String, token: String) {
-        // Placeholder — 编译通过但在运行时暂不可用
-        // 实际项目中使用 signInWith(OTP) 发送 OTP，
-        // 然后用户输入 OTP 后通过 Supabase 的 SmsAutofill 或手动验证完成登录
+        // TODO: 当前 SDK 3.1.2 中 verifyPhoneOtp 的 OtpType 参数存在 Kotlin 编译互操作问题。
+        // 待 SDK 更新修复后替换为正确的 API 调用。
+        // 预期调用：supabase.auth.verifyPhoneOtp(type = OtpType.Phone, phone = "+86$phone", token = token)
+        throw UnsupportedOperationException("OTP验证暂不可用（SDK互操作问题），请使用密码登录")
     }
 
     // ── 邮箱 + 密码 登录/注册 ─────────────────────────────

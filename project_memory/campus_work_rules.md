@@ -152,6 +152,19 @@
 - 审查单参考模板：`archive/legacy_openclaw/08-审查单模板.md`（结论三类：通过/打回/阻塞，"部分通过"已于2026-05-21作废）
 - 审查报告存放：`archive/outputs/REVIEW-XXX-任务名.md`
 
+### 7.2.1 任务包反模式（禁止把 Agent 变成打字员）
+
+**任务包只描述问题+边界，不写具体方案。** 如果任务包里写了文件路径、行号、旧代码、新代码，Agent 就只会机械执行——不会自己分析、不会发现连带问题、不会质疑经理的判断。
+
+| 违规（❌） | 正确（✅） |
+|-----------|----------|
+| "文件 xxx.sql 第229行，把 `USING (author_id = auth.uid() OR ...)` 改为 `USING (public.is_agent())`" | "SQL 审查发现 community_comments 和 community_posts 的删除策略不一致。请分析是否构成安全问题，设计方案并修复。" |
+| "文件 HomeScreen.kt 第45行加一个 LazyColumn..." | "首页需要展示跑腿卡片列表。数据从 Supabase 获取。边界：不动 Navigation.kt。" |
+| "在 UserMappers.kt 加一个 toDto() 方法，映射 id/name/email 三个字段..." | "ProfileEntity 缺少对应的 DTO 转换。请检查所有 Entity 的 Mapper 完整性并补全。" |
+| "修改 AppDatabase.kt 第12行，version 从 1 改为 2，加 Migration(1,2)..." | "Room schema 需要升级。请分析需要新增哪些 Entity，设计 Migration 策略。" |
+
+**核心原则：告诉 Agent "要解决什么问题"，不告诉它"怎么解决"。** Agent 必须自己读文件、自己分析、自己设计方案。如果 Agent 的方案有问题，打回让它重新分析——而不是经理直接告诉它正确答案。
+
 ### 7.3 审查与打回
 - 审查结论只用：通过 / 打回 / 阻塞
 - **所有问题一律打回执行Agent修改**，经理不直接修改代码。不论问题大小。

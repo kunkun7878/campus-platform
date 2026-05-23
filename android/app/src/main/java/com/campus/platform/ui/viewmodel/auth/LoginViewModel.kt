@@ -16,7 +16,7 @@ data class LoginFormState(
     val phone: String = "",
     val password: String = "",
     val otpCode: String = "",
-    val useOtpLogin: Boolean = true,
+    val useOtpLogin: Boolean = false,
     val agreedToTerms: Boolean = false,
     val isLoading: Boolean = false,
     val otpSent: Boolean = false,
@@ -164,6 +164,7 @@ class LoginViewModel @Inject constructor(
                 val msg = when {
                     newCount >= 8 -> {
                         _formState.update { it.copy(lockoutSeconds = 60) }
+                        startLockoutCountdown()
                         "密码错误次数过多，已锁定60秒，请稍后再试"
                     }
                     newCount >= 5 -> {

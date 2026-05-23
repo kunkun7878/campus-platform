@@ -8,6 +8,7 @@ import com.campus.platform.data.model.School
 import com.campus.platform.domain.repository.IReferenceRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +48,11 @@ class ReferenceRepository @Inject constructor(
                 .select()
                 .decodeList<School>()
             referenceDao.upsertAllSchools(schools.map { it.toEntity() })
-        } catch (e: Exception) { if (e is CancellationException) throw e }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Refresh error", e)
+        }
     }
 
     override suspend fun refreshCampuses(schoolId: String) {
@@ -57,7 +62,11 @@ class ReferenceRepository @Inject constructor(
                 .select { filter { eq("school_id", schoolId) } }
                 .decodeList<Campus>()
             referenceDao.upsertAllCampuses(campuses.map { it.toEntity() })
-        } catch (e: Exception) { if (e is CancellationException) throw e }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Refresh error", e)
+        }
     }
 
     override suspend fun getCampusById(id: String): Campus? {

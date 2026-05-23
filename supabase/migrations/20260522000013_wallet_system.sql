@@ -38,6 +38,38 @@ CREATE TRIGGER trg_wallets_updated_at
 CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON public.wallets(user_id);
 CREATE INDEX IF NOT EXISTS idx_wallets_balance ON public.wallets(user_id, balance);
 
+-- trigger 函数：阻止非 service_role 用户直接修改钱包余额
+-- 所有余额变更必须通过 Edge Function (service_role) 配合 wallet_transactions 完成，
+-- 保证每笔余额变动都有对应的交易流水记录，确保对账可追溯。
+CREATE OR REPLACE FUNCTION public.check_wallets_balance_change()
+RETURNS trigger AS $$
+BEGIN
+    -- service_role 可修改任意字段（Edge Function / 系统调用），不拦截
+    IF (SELECT auth.role()) = 'service_role' THEN
+        RETURN NEW;
+    END IF;
+
+    -- 非 service_role 用户（包括 Agent）：不允许直接修改 balance
+    IF NEW.balance IS DISTINCT FROM OLD.balance THEN
+        RAISE EXCEPTION 'permission denied: balance can only be modified via service_role (Edge Function)';
+    END IF;
+
+    -- 非 service_role 用户（包括 Agent）：不允许直接修改 frozen_balance
+    IF NEW.frozen_balance IS DISTINCT FROM OLD.frozen_balance THEN
+        RAISE EXCEPTION 'permission denied: frozen_balance can only be modified via service_role (Edge Function)';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, pg_temp;
+
+-- 应用 trigger：在 UPDATE 之前检查余额字段
+DROP TRIGGER IF EXISTS trg_wallets_check_balance ON public.wallets;
+CREATE TRIGGER trg_wallets_check_balance
+    BEFORE UPDATE ON public.wallets
+    FOR EACH ROW
+    EXECUTE FUNCTION public.check_wallets_balance_change();
+
 -- ═══════════════════════════════════════════════════════════
 -- 2. wallet_transactions — 交易流水（append-only）
 -- ═══════════════════════════════════════════════════════════

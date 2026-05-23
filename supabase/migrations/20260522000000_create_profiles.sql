@@ -30,7 +30,7 @@ BEGIN
     NEW.updated_at = now();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, pg_temp;
 
 -- ── profiles updated_at trigger ──────────────────────────
 DROP TRIGGER IF EXISTS set_profiles_updated_at ON public.profiles;
@@ -47,7 +47,7 @@ BEGIN
     VALUES (NEW.id, NEW.phone, now(), now());
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, pg_temp;
 
 -- ── on_auth_user_created trigger ─────────────────────────
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;

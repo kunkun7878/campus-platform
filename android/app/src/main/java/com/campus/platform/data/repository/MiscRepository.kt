@@ -11,6 +11,7 @@ import com.campus.platform.domain.repository.IMiscRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -125,7 +126,11 @@ class MiscRepository @Inject constructor(
                 .select { filter { or { eq("school_id", schoolId); filter("school_id", FilterOperator.IS, null) } } }
                 .decodeList<AnnouncementApiDto>()
             miscDao.upsertAllAnnouncements(result.map { it.toMapperDto().toEntity() })
-        } catch (e: Exception) { if (e is CancellationException) throw e }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Refresh error", e)
+        }
     }
 
     // ── Coupons ────────────────────────────────────────────────
@@ -166,7 +171,11 @@ class MiscRepository @Inject constructor(
                 .select { filter { or { eq("school_id", schoolId); filter("school_id", FilterOperator.IS, null) } } }
                 .decodeList<CouponApiDto>()
             miscDao.upsertAllCoupons(result.map { it.toMapperDto().toEntity() })
-        } catch (e: Exception) { if (e is CancellationException) throw e }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Refresh error", e)
+        }
     }
 
     override suspend fun refreshUserCoupons(userId: String) {
@@ -176,7 +185,11 @@ class MiscRepository @Inject constructor(
                 .select { filter { eq("user_id", userId) } }
                 .decodeList<UserCouponApiDto>()
             miscDao.upsertAllUserCoupons(result.map { it.toMapperDto().toEntity() })
-        } catch (e: Exception) { if (e is CancellationException) throw e }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Refresh error", e)
+        }
     }
 
     // ── Feedback ───────────────────────────────────────────────

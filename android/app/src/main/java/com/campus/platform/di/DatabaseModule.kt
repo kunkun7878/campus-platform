@@ -3,7 +3,7 @@ package com.campus.platform.di
 import android.content.Context
 import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
+import androidx.security.crypto.MasterKey
 import com.campus.platform.data.local.AppDatabase
 import com.campus.platform.data.local.dao.CommunityDao
 import com.campus.platform.data.local.dao.LostFoundDao
@@ -31,12 +31,13 @@ object DatabaseModule {
     private const val DB_PREFS_NAME = "campus_db_secure_prefs"
     private const val KEY_PASSPHRASE = "db_passphrase"
 
-    @Suppress("DEPRECATION")
     private fun getEncryptedPrefs(context: Context) =
         EncryptedSharedPreferences.create(
-            DB_PREFS_NAME,
-            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
             context,
+            DB_PREFS_NAME,
+            MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build(),
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )

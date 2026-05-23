@@ -195,7 +195,7 @@ CREATE POLICY community_comments_agent_select_policy ON public.community_comment
     TO authenticated
     USING (public.is_agent());
 
--- INSERT: 只能评论同校的帖子
+-- INSERT: 只能评论同校的帖子，且验证 post_id 对应的帖子 school_id 与评论一致
 DROP POLICY IF EXISTS community_comments_insert_policy ON public.community_comments;
 CREATE POLICY community_comments_insert_policy ON public.community_comments
     FOR INSERT
@@ -203,6 +203,7 @@ CREATE POLICY community_comments_insert_policy ON public.community_comments
     WITH CHECK (
         author_id = auth.uid()
         AND school_id = public.get_user_school_id()
+        AND (SELECT p.school_id FROM public.community_posts p WHERE p.id = post_id) = school_id
     );
 
 DROP POLICY IF EXISTS community_comments_update_policy ON public.community_comments;

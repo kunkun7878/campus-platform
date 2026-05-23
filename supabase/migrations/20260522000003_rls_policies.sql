@@ -13,20 +13,20 @@ CREATE OR REPLACE FUNCTION public.get_user_school_id()
 RETURNS uuid AS $$
     SELECT school_id FROM public.profiles WHERE id = auth.uid()
     LIMIT 1;
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, pg_temp;
 
 -- 获取当前用户的 campus_id
 CREATE OR REPLACE FUNCTION public.get_user_campus_id()
 RETURNS uuid AS $$
     SELECT campus_id FROM public.profiles WHERE id = auth.uid()
     LIMIT 1;
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, pg_temp;
 
 -- 当前用户是否为代理
 CREATE OR REPLACE FUNCTION public.is_agent()
 RETURNS boolean AS $$
     SELECT COALESCE((SELECT is_agent FROM public.profiles WHERE id = auth.uid() LIMIT 1), false);
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, pg_temp;
 
 -- 当前用户是否已选校
 CREATE OR REPLACE FUNCTION public.has_selected_school()
@@ -35,7 +35,7 @@ RETURNS boolean AS $$
         SELECT 1 FROM public.profiles
         WHERE id = auth.uid() AND school_id IS NOT NULL AND campus_id IS NOT NULL
     );
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, pg_temp;
 
 -- ═══════════════════════════════════════════════════════════
 -- RLS Policies
@@ -98,13 +98,13 @@ CREATE POLICY profiles_agent_update_policy ON public.profiles
     USING (public.is_agent())
     WITH CHECK (public.is_agent());
 
--- Agent 可删除 profile（注意：业务上应通过 profiles_agent_update_policy
+-- 禁止硬删除 profile（业务上应通过 profiles_agent_update_policy
 -- 执行软删除 UPDATE status=2，避免直接硬删除用户数据）
 DROP POLICY IF EXISTS profiles_agent_delete_policy ON public.profiles;
 CREATE POLICY profiles_agent_delete_policy ON public.profiles
     FOR DELETE
     TO authenticated
-    USING (public.is_agent());
+    USING (false);
 
 -- ── schools 表 ───────────────────────────────────────────
 

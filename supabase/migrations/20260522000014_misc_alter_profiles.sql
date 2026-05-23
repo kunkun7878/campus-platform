@@ -3,10 +3,10 @@
 -- 描述: 创建杂项表 + 修改 profiles 表 + 细化 UPDATE 策略
 --       feedbacks / invite_codes / invite_records
 --       / login_codes / attachments
---       + ALTER profiles (balance, runner_status,
+--       + ALTER profiles (runner_status,
 --         invite_code, referrer_id)
 --       + profiles 细化 UPDATE: 用户不可自改
---         balance/runner_status
+--         runner_status
 --
 -- 执行方式: 在 Supabase Dashboard → SQL Editor 中打开本文件，
 --           选中全部内容后点击 Run 执行。
@@ -14,7 +14,7 @@
 -- 说明: login_codes 客户端无任何 policy（参照 wechat_identities
 --       模式），仅 Edge Function 以 service_role 写入。
 --       profiles UPDATE 新增 trigger 限制用户自改
---       balance/runner_status，仅 Agent/system 可修改。
+--       runner_status，仅 Agent/system 可修改。
 -- ═══════════════════════════════════════════════════════════
 
 -- ═══════════════════════════════════════════════════════════
@@ -169,10 +169,6 @@ CREATE INDEX IF NOT EXISTS idx_attachments_created_at ON public.attachments(user
 -- 6. ALTER profiles — 新增字段
 -- ═══════════════════════════════════════════════════════════
 
--- 钱包余额（单位：分），仅 Agent/系统可修改
-ALTER TABLE public.profiles
-    ADD COLUMN IF NOT EXISTS balance integer DEFAULT 0 CHECK (balance >= 0);
-
 -- 跑腿员状态，仅 Agent/系统可修改
 ALTER TABLE public.profiles
     ADD COLUMN IF NOT EXISTS runner_status text DEFAULT 'none'
@@ -195,11 +191,11 @@ CREATE INDEX IF NOT EXISTS idx_profiles_referrer_id ON public.profiles(referrer_
 
 -- ═══════════════════════════════════════════════════════════
 -- 7. profiles UPDATE 细化策略
---    用户不可自改 balance/runner_status
---    仅 Agent 或 service_role 可修改这两个字段
+--    用户不可自改 runner_status
+--    仅 Agent 或 service_role 可修改此字段
 -- ═══════════════════════════════════════════════════════════
 
--- trigger 函数：阻止非 Agent 用户修改 balance 或 runner_status
+-- trigger 函数：阻止非 Agent 用户修改 runner_status 或 invite_code
 CREATE OR REPLACE FUNCTION public.check_profiles_sensitive_fields()
 RETURNS trigger AS $$
 BEGIN
@@ -211,11 +207,6 @@ BEGIN
     -- Agent 可修改任意字段，不拦截
     IF public.is_agent() THEN
         RETURN NEW;
-    END IF;
-
-    -- 非 Agent 用户：不允许修改 balance
-    IF NEW.balance IS DISTINCT FROM OLD.balance THEN
-        RAISE EXCEPTION 'permission denied: only agents can modify balance';
     END IF;
 
     -- 非 Agent 用户：不允许修改 runner_status
@@ -230,7 +221,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, pg_temp;
 
 -- 应用 trigger：在 UPDATE 之前检查
 DROP TRIGGER IF EXISTS trg_profiles_check_sensitive ON public.profiles;

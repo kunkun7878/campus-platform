@@ -60,21 +60,6 @@ fun LoginScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 倒计时 side-effects
-    LaunchedEffect(formState.countdown) {
-        if (formState.countdown > 0) {
-            kotlinx.coroutines.delay(1000)
-            // countdown is managed by ViewModel's internal coroutine
-        }
-    }
-
-    LaunchedEffect(formState.lockoutSeconds) {
-        if (formState.lockoutSeconds > 0) {
-            kotlinx.coroutines.delay(1000)
-            // lockout is managed by ViewModel's internal coroutine
-        }
-    }
-
     // 登录成功导航
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {

@@ -20,7 +20,6 @@ data class Profile(
     @SerialName("is_agent")
     val isAgent: Boolean = false,
     val status: Int = 0,
-    val balance: Int = 0,
     @SerialName("runner_status")
     val runnerStatus: String = "none",
     @SerialName("invite_code")
