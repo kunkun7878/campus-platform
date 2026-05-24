@@ -6,6 +6,7 @@ import com.campus.platform.data.repository.AfterSaleTimelineRepository
 import com.campus.platform.data.repository.CommunityRepository
 import com.campus.platform.data.repository.FavoriteRepository
 import com.campus.platform.data.repository.GroupRepository
+import com.campus.platform.data.repository.ImageUploadRepository
 import com.campus.platform.data.repository.LostFoundRepository
 import com.campus.platform.data.repository.MarketOrderRepository
 import com.campus.platform.data.repository.MarketRepository
@@ -25,6 +26,7 @@ import com.campus.platform.domain.repository.IAfterSaleTimelineRepository
 import com.campus.platform.domain.repository.ICommunityRepository
 import com.campus.platform.domain.repository.IFavoriteRepository
 import com.campus.platform.domain.repository.IGroupRepository
+import com.campus.platform.domain.repository.IImageUploadRepository
 import com.campus.platform.domain.repository.ILostFoundRepository
 import com.campus.platform.domain.repository.IMarketOrderRepository
 import com.campus.platform.domain.repository.IMarketRepository
@@ -119,6 +121,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAfterSaleTimelineRepository(impl: AfterSaleTimelineRepository): IAfterSaleTimelineRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindImageUploadRepository(impl: ImageUploadRepository): IImageUploadRepository
 
     @Binds
     @Singleton

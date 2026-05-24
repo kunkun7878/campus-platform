@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import com.campus.platform.data.auth.AuthRepository
+import com.campus.platform.domain.repository.IImageUploadRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.storage
@@ -32,10 +33,10 @@ class ImageUploadRepository @Inject constructor(
     private val supabase: SupabaseClient,
     private val authRepository: AuthRepository,
     @ApplicationContext private val context: Context,
-) {
+) : IImageUploadRepository {
 
     /** 单张上传: 压缩 → 上传 → 返回 signedUrl */
-    suspend fun uploadImage(
+    override suspend fun uploadImage(
         uri: Uri,
         bucket: String,
         resourceId: String,
@@ -48,7 +49,7 @@ class ImageUploadRepository @Inject constructor(
     }
 
     /** 批量上传: 逐张压缩+上传, 返回 signedUrl 列表 */
-    suspend fun uploadImages(
+    override suspend fun uploadImages(
         uris: List<Uri>,
         bucket: String,
         resourceIdPrefix: String,

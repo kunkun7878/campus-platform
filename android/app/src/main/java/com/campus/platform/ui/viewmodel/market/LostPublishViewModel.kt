@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
-import com.campus.platform.data.repository.ImageUploadRepository
+import com.campus.platform.domain.repository.IImageUploadRepository
 import com.campus.platform.domain.repository.ILostFoundRepository
 import com.campus.platform.ui.viewmodel.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +34,7 @@ private val CATEGORY_OPTIONS = listOf(
 class LostPublishViewModel @Inject constructor(
     private val lostFoundRepository: ILostFoundRepository,
     private val authRepository: AuthRepository,
-    private val imageUploadRepository: ImageUploadRepository,
+    private val imageUploadRepository: IImageUploadRepository,
 ) : ViewModel() {
 
     // ── 发布结果状态 ──────────────────────────────────────────

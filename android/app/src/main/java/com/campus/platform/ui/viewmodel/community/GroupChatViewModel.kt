@@ -10,7 +10,7 @@ import com.campus.platform.data.local.mapper.GroupMemberDto
 import com.campus.platform.data.local.mapper.GroupMessageDto
 import com.campus.platform.data.local.mapper.OfficialGroupDto
 import com.campus.platform.data.model.Profile
-import com.campus.platform.data.repository.ImageUploadRepository
+import com.campus.platform.domain.repository.IImageUploadRepository
 import com.campus.platform.domain.repository.IGroupRepository
 import com.campus.platform.domain.repository.IMessageRepository
 import com.campus.platform.domain.repository.IUserRepository
@@ -52,7 +52,7 @@ class GroupChatViewModel @Inject constructor(
     private val messageRepo: IMessageRepository,
     private val userRepo: IUserRepository,
     private val authRepository: AuthRepository,
-    private val imageUploadRepository: ImageUploadRepository,
+    private val imageUploadRepository: IImageUploadRepository,
 ) : ViewModel() {
 
     private val groupId: String = savedStateHandle["chatId"] ?: ""

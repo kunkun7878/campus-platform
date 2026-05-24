@@ -1,6 +1,6 @@
 # 校园聚合平台 - 代码/页面事实地图
 
-<!-- last_sync: 2026-05-23T23:30 CST -->
+<!-- last_sync: 2026-05-24T18:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[runtime_notes]]
 
@@ -44,14 +44,15 @@ android/
 │       │           ├── community/                  （Community, GroupChat, PostCreate, PostDetail）
 │       │           ├── global/                     （SchoolSelect）
 │       │           ├── home/                       （Home, GoodsDetail, LostDetail, LostClaim, AnnouncementDetail）
-│       │           ├── market/                     （AfterSale*, LostPublish, MarketPublish, Order*）
+│       │           ├── market/                     （LostPublish, MarketPublish, MarketOrderDetail）
 │       │           ├── message/                    （ChatDetail, Message）
 │       │           ├── profile/                    （About, Wallet, Coupons 等 12 屏）
-│       │           └── publish/                    （PublishHub, Publish）
+│       │           ├── publish/                    （PublishHub, Publish）
+│       │           └── runner/                     （AfterSaleApply, AfterSaleDetail, OrderDetail, OrderList）
 │       └── res/
 ```
 
-## 已验证页面/screen 清单（来自真实 HTML + Phase 2 新增）— 共36个
+## 已验证页面/screen 清单（来自真实 HTML + Phase 2-6 实现）— 共38个
 
 | 页面/screen | 来源 | 状态 |
 |-------------|------|------|
@@ -59,10 +60,11 @@ android/
 | home | 真实 HTML `screenConfigs` | 已验证（HorizontalPager + FilterChip） |
 | publish | 真实 HTML `screenConfigs` | 已验证 |
 | publish-hub | 真实 HTML `screenConfigs` | 已验证 |
-| order-detail | 真实 HTML `screenConfigs` | 已验证 |
-| order-list | 真实 HTML `screenConfigs` | 已验证 |
-| after-sale-apply | 真实 HTML `screenConfigs` | 已验证 |
-| after-sale-detail | 真实 HTML `screenConfigs` | 已验证 |
+| order-detail | 真实 HTML `screenConfigs` | ✅ Phase 4 已实现（已迁至 runner/） |
+| order-list | 真实 HTML `screenConfigs` | ✅ Phase 4 已实现（已迁至 runner/） |
+| after-sale-apply | 真实 HTML `screenConfigs` | ✅ Phase 4 已实现（已迁至 runner/） |
+| after-sale-detail | 真实 HTML `screenConfigs` | ✅ Phase 4 已实现（已迁至 runner/） |
+| **market-order-detail** | Phase 5 新增 | ✅ Phase 5 已实现（@Serializable 类型安全路由） |
 | goods-detail | 真实 HTML `screenConfigs` | 已验证（@Serializable 类型安全路由，已移至 home/） |
 | lost-detail | 真实 HTML `screenConfigs` | 已验证（@Serializable 类型安全路由，已移至 home/） |
 | lost-claim | 真实 HTML `screenConfigs` | 已验证（@Serializable 类型安全路由，已移至 home/） |
@@ -78,23 +80,23 @@ android/
 | register | 真实 HTML `screenConfigs` | ✅ Phase 2 已实现（3步分步表单 + 密码强度） |
 | **password-reset** | Phase 2 新增 | ✅ Phase 2 已实现 |
 | **account-delete** | Phase 2 新增 | ✅ Phase 2 已实现 |
-| market-publish | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| lost-publish | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| wallet | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| runner-apply | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| address-manage | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| coupons | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| invite | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| feedback | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| about | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| my-published | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| my-sold | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| my-bought | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
-| my-favorites | 真实 HTML `screenConfigs` | 已有占位组件，待对应 Phase 实现业务内容 |
+| market-publish | 真实 HTML `screenConfigs` | ✅ Phase 5 已实现 |
+| lost-publish | 真实 HTML `screenConfigs` | ✅ Phase 6 已实现 |
+| wallet | 真实 HTML `screenConfigs` | 已有占位组件，待 Phase 7 实现业务内容 |
+| runner-apply | 真实 HTML `screenConfigs` | 已有占位组件，待 Phase 7 实现业务内容 |
+| address-manage | 真实 HTML `screenConfigs` | 已有占位组件，待 Phase 7 实现业务内容 |
+| coupons | 真实 HTML `screenConfigs` | 已有占位组件，待 Phase 7 实现业务内容 |
+| invite | 真实 HTML `screenConfigs` | 已有占位组件，待 Phase 7 实现业务内容 |
+| feedback | 真实 HTML `screenConfigs` | 已有占位组件，待 Phase 7 实现业务内容 |
+| about | 真实 HTML `screenConfigs` | 已有占位组件，待 Phase 7 实现业务内容 |
+| my-published | 真实 HTML `screenConfigs` | ✅ Phase 5 已实现（跨类型列表 + data-type 分发） |
+| my-sold | 真实 HTML `screenConfigs` | ✅ Phase 5 已实现 |
+| my-bought | 真实 HTML `screenConfigs` | ✅ Phase 5 已实现 |
+| my-favorites | 真实 HTML `screenConfigs` | ✅ Phase 5 已实现（AnimatedVisibility fadeOut） |
 
 ## Supabase 数据库
 
-### Migration 文件（15 个 + 15 Revert）
+### Migration 文件（18 个 + 17 Revert）
 
 | Migration | 文件 | 表 | 模块 |
 |-----------|------|-----|------|
@@ -113,8 +115,11 @@ android/
 | 12 | messaging_social | post_likes, conversations, messages, group_messages, group_members | 消息 + 点赞 |
 | 13 | wallet_system | wallets, wallet_transactions, announcements, coupons, user_coupons | 钱包 + 系统 |
 | 14 | misc_alter_profiles | feedbacks, invite_codes, invite_records, login_codes, attachments + ALTER profiles | 杂项 + 扩展 |
+| 15 | fix_runner_rls | 修复 4 处 runner RLS 策略漏洞 | 安全修复 |
+| 16 | harden_market_orders_rls | 加强 market_orders INSERT RLS（listing 有效性 + seller 一致性 + 买家≠卖家） | 安全加固 |
+| 17 | phase6_schema | fcm_tokens, moderation_logs + 6 trigger + 30+ DDL 变更 | Phase 6 基础设施 |
 
-### 数据库表完整清单（36 张）
+### 数据库表完整清单（38 张）
 
 | 模块 | 表名 | Migration | 隔离策略 |
 |------|------|-----------|---------|
@@ -154,6 +159,8 @@ android/
 | 系统 | invite_records | 14 | inviter_id |
 | 认证 | login_codes | 14 | service_role only |
 | 附件 | attachments | 14 | user_id |
+| 推送 | fcm_tokens | 17 | user_id |
+| 审核 | moderation_logs | 17 | Agent 可见 |
 
 ## 页面切换机制
 
@@ -214,3 +221,6 @@ android/
 | 类型安全路由迁移（4 条） | 已验证（BUILD SUCCESSFUL） |
 | Navigation hasRoute<T>() | 已验证（BUILD SUCCESSFUL） |
 | saveState/restoreState | 已验证（BUILD SUCCESSFUL） |
+| Phase 4 跑腿全链路 | 已验证（BUILD SUCCESSFUL） |
+| Phase 5 二手交易全链路 | 已验证（BUILD SUCCESSFUL） |
+| Phase 6 失物+社区+聊天+FCM | 已验证（BUILD SUCCESSFUL） |

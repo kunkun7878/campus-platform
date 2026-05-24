@@ -18,7 +18,7 @@
 - Phase 0: 环境搭建 ✅
 - Phase 1: 项目骨架 + 主题 + 导航（5 Tab + 34 route） ✅
 - Phase 2: 认证 + 选校 ✅
-- Phase 3: 数据层基座（36表DDL + Room + Repository + ViewModel） ✅
+- Phase 3: 数据层基座（38表DDL + Room + Repository + ViewModel） ✅
 - Phase 4: 跑腿全链路（8 screen + 2 Edge Function + 6 共享组件） ✅
 - Phase 5: 二手交易（7 screen + 1 Edge Function + 6 组件 + UiState 改造） ✅
   - 4 轮审查 + 4 轮修复 = 32 项问题全部修复，47 Agent 总数
@@ -30,8 +30,7 @@
   - 图片上传（4 Storage bucket + WebP压缩 + Coil加载）
   - FCM 全场景离线推送（push-notification EdgeFn + Android Service）
   - 通知中心（嵌入MessageScreen + deep link）+ 首页lost子视图 + 全量空态
-  - Migration 17（30+DDL变更 + 6 trigger + 2新表）
-  - Migration 18（moderation_logs + status CHECK扩展）
+  - Migration 17（30+DDL变更 + 6 trigger + 2新表 + moderation_logs + status CHECK 扩展）
   - 编译验证：BUILD SUCCESSFUL
   - 最终审计：0 P0 / 0 P1，4 P2非阻塞
 

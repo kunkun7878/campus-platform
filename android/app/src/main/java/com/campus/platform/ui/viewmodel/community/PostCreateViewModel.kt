@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
 import com.campus.platform.data.local.UserPreferencesDataStore
 import com.campus.platform.data.local.mapper.CommunityPostDto
-import com.campus.platform.data.repository.ImageUploadRepository
+import com.campus.platform.domain.repository.IImageUploadRepository
 import com.campus.platform.domain.repository.ICommunityRepository
 import com.campus.platform.domain.repository.ModerationResult
 import com.campus.platform.ui.viewmodel.UiState
@@ -27,7 +27,7 @@ class PostCreateViewModel @Inject constructor(
     private val communityRepo: ICommunityRepository,
     private val authRepository: AuthRepository,
     private val prefs: UserPreferencesDataStore,
-    private val imageUploadRepository: ImageUploadRepository,
+    private val imageUploadRepository: IImageUploadRepository,
 ) : ViewModel() {
 
     // ── 表单字段 ──

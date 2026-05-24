@@ -63,7 +63,7 @@
 ## Phase 3 数据层设计决策（2026-05-22）
 
 ### 数据库范围
-21. 36 张表全覆盖（4已有 + 32新增），一次性补齐，不按 Phase 分批
+21. 36 张表全覆盖（Phase 3 初始），Phase 6 增至 38 张（+fcm_tokens + moderation_logs），一次性补齐，不按 Phase 分批
 22. 每张内容表必须有 school_id + RLS 策略 + revert 脚本
 
 ### Room 策略
@@ -164,5 +164,6 @@
 
 ### 敏感词审核方案
 77. 本地敏感词库：textfilter 40核心词条+Aho-Corasick自动机+联系方式正则。block不存库，review存库仅作者可见
-78. Edge Function community-moderation：接管帖子/评论INSERT，三级风险分级。Migration 18扩展status CHECK+新建moderation_logs表
+78. Edge Function community-moderation：接管帖子/评论INSERT，三级风险分级。Migration 17（含原计划 Migration 18 的 status CHECK + moderation_logs 表）
+<!-- 注：决策 #79 原分配给 FCM 方案细节，内容已合并入 #72 和 #80，编号保留空缺 -->
 80. Firebase 项目 campus-platform 已创建，google-services.json 已配置到 android/app/，服务帐号私钥已就绪。FCM Server Key 不需要（使用服务帐号 OAuth 2.0 认证 HTTP v1 API）

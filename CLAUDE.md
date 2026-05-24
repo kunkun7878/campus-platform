@@ -67,7 +67,8 @@ Skill要求：xxx, xxx
 - 原型：34 screen，`prototype/campus-miniapp-prototype.html`
 - Android：Kotlin 2.1.20 + Compose + AGP 8.9.0 + Gradle 8.11.1
 - Skills：54个（`.claude/skills/`），分配见 §7.1.1
-- 阶段：Phase 2 完成 ✅ → 准备 Phase 3
+- 阶段：Phase 6 完成 ✅ → Phase 7 待开始
+> 最新状态以 [[campus_status]] 为准
 - GitHub：https://github.com/kunkun7878/campus-platform
 
 ## Obsidian

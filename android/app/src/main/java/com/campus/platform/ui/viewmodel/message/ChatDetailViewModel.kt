@@ -10,7 +10,7 @@ import com.campus.platform.data.local.entity.MessageEntity
 import com.campus.platform.data.local.mapper.ConversationDto
 import com.campus.platform.data.local.mapper.MessageDto
 import com.campus.platform.data.model.Profile
-import com.campus.platform.data.repository.ImageUploadRepository
+import com.campus.platform.domain.repository.IImageUploadRepository
 import com.campus.platform.domain.repository.IMessageRepository
 import com.campus.platform.domain.repository.IUserRepository
 import com.campus.platform.ui.viewmodel.UiState
@@ -41,7 +41,7 @@ class ChatDetailViewModel @Inject constructor(
     private val messageRepo: IMessageRepository,
     private val userRepo: IUserRepository,
     private val authRepository: AuthRepository,
-    private val imageUploadRepository: ImageUploadRepository,
+    private val imageUploadRepository: IImageUploadRepository,
 ) : ViewModel() {
 
     /** 会话 ID，从导航参数获取 */

@@ -1,6 +1,6 @@
 # 校园聚合平台 - 运行环境与预览说明
 
-<!-- last_sync: 2026-05-23T23:30 CST -->
+<!-- last_sync: 2026-05-24T18:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[codebase_map]]
 
@@ -8,7 +8,7 @@
 - HTML 原型：`C:\Users\admin\Desktop\校园聚合平台\prototype\campus-miniapp-prototype.html`（34 screen）
 - Android 项目：`C:\Users\admin\Desktop\校园聚合平台\android\`
 - 项目记忆根目录：`C:\Users\admin\Desktop\校园聚合平台\project_memory\`
-- Supabase Migrations：`C:\Users\admin\Desktop\校园聚合平台\supabase\migrations\`（15 个 + 15 Revert）
+- Supabase Migrations：`C:\Users\admin\Desktop\校园聚合平台\supabase\migrations\`（18 个 + 17 Revert）
 
 ## Supabase Migration 执行
 
@@ -22,7 +22,9 @@
 06_runner_module → 07_market_module → 08_lost_found_module →
 09_community_module → 10_notifications →
 11_runner_after_sale_supplement → 12_messaging_social →
-13_wallet_system → 14_misc_alter_profiles
+13_wallet_system → 14_misc_alter_profiles →
+15_fix_runner_rls → 16_harden_market_orders_rls →
+17_phase6_schema
 ```
 
 ### 回滚
@@ -68,4 +70,4 @@ cd C:\Users\admin\Desktop\校园聚合平台\android
 - HTML 原型为静态演示，无真实后端
 - Android 项目首次编译已验证通过（./gradlew assembleDebug，6秒）✅
 - Android Studio 中文插件暂无适配（平台253）
-- Supabase 项目已创建（campus-platform, ap-southeast-1）；Firebase 项目尚未创建（Phase 7 前创建）
+- Supabase 项目已创建（campus-platform, ap-southeast-1）；Firebase 项目已创建（Phase 6，google-services.json 已配置）
