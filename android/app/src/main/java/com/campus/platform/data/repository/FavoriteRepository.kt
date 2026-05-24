@@ -13,6 +13,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
@@ -49,6 +52,10 @@ class FavoriteRepository @Inject constructor(
     override fun getFavorites(userId: String): Flow<List<UserFavoriteDto>> {
         scope.launch { refreshFavorites(userId) }
         return userDao.getFavoritesByUserId(userId).map { it.map { e -> e.toDto() } }
+    }
+
+    override fun getFavoritesByUserIdAndTypeFlow(userId: String, targetType: String): Flow<List<UserFavoriteDto>> {
+        return userDao.getFavoritesByUserIdAndType(userId, targetType).map { it.map { e -> e.toDto() } }
     }
 
     override suspend fun addFavorite(favorite: UserFavoriteDto) {

@@ -11,13 +11,16 @@ interface IRunnerTaskRepository {
 
     suspend fun getTaskById(id: String): RunnerTaskDto?
 
-    fun getTasksByPublisher(userId: String): Flow<List<RunnerTaskDto>>
+    fun getTasksByPublisher(userId: String, schoolId: String): Flow<List<RunnerTaskDto>>
 
-    fun getTasksByRunner(userId: String): Flow<List<RunnerTaskDto>>
+    fun getTasksByRunner(userId: String, schoolId: String): Flow<List<RunnerTaskDto>>
 
     suspend fun publishTask(task: RunnerTaskDto)
 
     suspend fun updateTask(id: String, updates: Map<String, Any?>)
 
     suspend fun refreshTasks(schoolId: String)
+
+    /** 强制从 Supabase 重新拉取单条任务并 upsert Room */
+    suspend fun refreshTask(taskId: String)
 }

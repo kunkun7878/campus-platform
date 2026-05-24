@@ -1,5 +1,6 @@
 package com.campus.platform.ui.viewmodel.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
@@ -98,6 +99,7 @@ class RegisterViewModel @Inject constructor(
                 _formState.update { it.copy(otpSent = true, countdown = 60) }
                 startCountdown()
             } catch (e: Exception) {
+                Log.e("RegisterViewModel", "发送验证码失败", e)
                 val msg = e.message ?: ""
                 val errorMsg = if (msg.contains("already registered", ignoreCase = true) ||
                     msg.contains("already exists", ignoreCase = true) ||
@@ -105,7 +107,7 @@ class RegisterViewModel @Inject constructor(
                 ) {
                     "该手机号已注册，请直接登录"
                 } else {
-                    e.message ?: "发送验证码失败"
+                    "发送验证码失败，请稍后重试"
                 }
                 setError(errorMsg)
             } finally {
@@ -126,7 +128,8 @@ class RegisterViewModel @Inject constructor(
                 authRepository.verifyOtp(state.phone, state.otpCode)
                 _formState.update { it.copy(currentStep = 2) }
             } catch (e: Exception) {
-                setError(e.message ?: "验证码错误或已过期")
+                Log.e("RegisterViewModel", "验证码校验失败", e)
+                setError("验证码错误或已过期")
             } finally {
                 _formState.update { it.copy(isLoading = false) }
             }
@@ -154,7 +157,8 @@ class RegisterViewModel @Inject constructor(
                 authRepository.signUpWithPhoneAndPassword(state.phone, state.password)
                 _uiState.value = RegisterUiState.Success
             } catch (e: Exception) {
-                setError(e.message ?: "注册失败，请稍后重试")
+                Log.e("RegisterViewModel", "注册失败", e)
+                setError("注册失败，请稍后重试")
             } finally {
                 _formState.update { it.copy(isLoading = false) }
             }

@@ -6,8 +6,10 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.campus.platform.data.local.AppDatabase
 import com.campus.platform.data.local.dao.CommunityDao
+import com.campus.platform.data.local.dao.ConversationDao
 import com.campus.platform.data.local.dao.LostFoundDao
 import com.campus.platform.data.local.dao.MarketDao
+import com.campus.platform.data.local.dao.MessageDao
 import com.campus.platform.data.local.dao.MiscDao
 import com.campus.platform.data.local.dao.ReferenceDao
 import com.campus.platform.data.local.dao.RunnerDao
@@ -96,4 +98,10 @@ object DatabaseModule {
 
     @Provides
     fun provideMiscDao(db: AppDatabase): MiscDao = db.miscDao()
+
+    @Provides
+    fun provideConversationDao(db: AppDatabase): ConversationDao = db.conversationDao()
+
+    @Provides
+    fun provideMessageDao(db: AppDatabase): MessageDao = db.messageDao()
 }

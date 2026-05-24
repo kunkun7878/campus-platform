@@ -1,6 +1,6 @@
 # 校园聚合平台 - 已确认决策
 
-<!-- last_sync: 2026-05-23T10:00 CST -->
+<!-- last_sync: 2026-05-24T16:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_rules]] · [[campus_work_rules]] · [[campus_open_questions]] · [[iteration_current]] · [[codebase_map]] · [[campus_ui_decisions]]
 
@@ -87,3 +87,82 @@
 34. 每个 migration 必须有配套 revert，使用 IF NOT EXISTS/DROP IF EXISTS 确保幂等
 35. RLS 策略集中在各模块 migration 中，不单独分离
 36. service_role 路径必须在所有 trigger 中显式豁免
+
+## Phase 4 跑腿全链路决策（2026-05-23）
+
+### 状态转换架构
+37. 所有跑腿状态转换（接单/确认取件/送达/收货/取消/售后）走 Supabase Edge Function（service_role），客户端不直写状态字段。理由：当前 RLS 已预设此路径 + SELECT FOR UPDATE 防并发抢单。
+38. 创建 2 个 Edge Function：`runner-order-lifecycle`（订单状态流转 + timeline 写入）、`runner-after-sale`（售后全流程）
+
+### 评价功能
+39. 评价嵌入 OrderDetailScreen：确认收货后底部展开评价表单（星级+文字），提交后表单转为只读展示。OrderList 中加"待评价"/"已评价" pill。Phase 4 先做 buyer 评 runner，双向评价留 Phase 5+
+
+### OrderList 合并
+40. 跑腿域合并：OrderListScreen 顶部 Tab 切换"我发布的/我接的单"，各 Tab 内含状态子筛选。市场模块 my-published/my-bought 保持独立（跨模块内容聚合，数据域不同）
+
+### AfterSale 归属
+41. OrderDetail/OrderList/AfterSaleApply/AfterSaleDetail 从 market/ 迁到 runner/。after_sales 表外键硬绑定 runner_orders，二手无售后表，不存在复用
+
+### Edge Function 搭建
+42. Phase 4 用 Supabase Dashboard 手动创建 Edge Function（Docker 未安装），代码手动同步到 supabase/functions/ 进 git。Phase 5+ 切 CLI
+
+### RLS 修复
+43. Phase 4 开工前修复 4 处 RLS 漏洞（新 migration 15）：runner_reviews INSERT 加订单参与者校验、after_sales INSERT 加订单参与者校验、order_timeline SELECT 加 JOIN、after_sale_timeline SELECT 加 JOIN
+44. runner_orders SELECT RLS 决策（2026-05-23）：维持 school_id 隔离（市场公开模式）。
+
+## Phase 5 二手交易决策（2026-05-23）
+
+### 范围与架构
+45. Phase 5 范围：7 screen（GoodsDetail/MarketPublish/MarketOrderDetail/my-sold/my-bought/my-published/my-favorites）+ 1 Edge Function + 6 组件 + UiState 泛化改造
+46. 购买流程走 Edge Function 事务（market-purchase），参照 runner-order-lifecycle 模式。原因：RLS UPDATE policy 阻止买家修改 listing.status，需 service_role 绕过
+47. MarketOrderDetail 新建，参照 runner OrderDetail 骨架（彩色状态横幅 + 商品信息卡片 + 双方信息 + 操作按钮）
+48. 不包含：图片上传（P7）、评价体系（DB 无 market_reviews 表）、售后/纠纷（DB 无 market_after_sales 表）、全文搜索（P7）
+49. 图片展示用 Coil AsyncImage 加载 + 色块 fallback（#EEF1FF），上传留 Phase 7
+
+### UI/交互决策
+50. GoodsDetail 底部操作栏固定在 Scaffold bottomBar：收藏(icon) | 联系卖家(outlined) | 立即购买(filled primary)
+51. MarketOrderDetail 状态区用彩色大横幅：pending 橙/accepted 蓝/completed 绿/cancelled 灰
+52. MarketPublish 发布成功跳转刚发布的 goods-detail
+53. 已售出商品点击 → 通过 listingId 查 market_order → 跳转 MarketOrderDetail
+54. 首页搜索栏在 HorizontalPager 上方共享，切换 tab 时 placeholder 变化
+55. 选择器用 ExposedDropdownMenuBox，分类/成色统一
+56. my-favorites 取消收藏：按钮始终显示 + AnimatedVisibility fadeOut
+
+### 技术架构决策
+57. MarketFeedCard 用 variant 枚举（HOME/MY_PUBLISHED/MY_FAVORITES），与 RunnerTaskCard 模式一致
+58. ViewModel 数据查询用双 Repository 注入模式（IMarketOrderRepository + IMarketRepository）
+59. MyPublishedScreen 跨类型列表按 data-type 分发跳转
+60. UiState<T> 泛型全量改造（Market 7 + Runner 8 VM），逐模块独立 commit
+61. 收藏操作先网络确认再更新 UI（与 runner 风格一致）
+62. 取消订单：买家仅 pending 可取消，卖家 pending/accepted 可取消（accepted 需填原因）
+63. Profile 不新增市场入口，用现有 my-sold/my-bought 路由
+64. seller_id 客户端校验作为 UX 优化，服务端 Edge Function 做强制校验
+
+### 数据库
+65. MarketDao 补 getListingsByIds 方法，UserDao 补 getFavoritesByUserIdAndType 方法当前 `runner_orders_select_policy` 仅校验 school_id，同校所有人可见所有订单的 buyer_id、runner_id、amount、status 等敏感字段。在跑腿市场公开模式下，这些信息对建立用户间信任是必要的——跑腿员需要看到订单信息以决定是否接单，买家也需要看到竞争情况。不做更细粒度的 RLS 收紧。
+
+## Phase 6 失物招领 + 社区 + 实时聊天决策（2026-05-23）
+
+### 决策 #33 修复
+66. 决策 #33 "所有内容表 ON DELETE RESTRICT" 与实际执行不符——全部 15 个 migration 中内容表间外键均使用 CASCADE。修正 #33 为：school_id 外键 ON DELETE RESTRICT，auth.users 和内容表间外键 ON DELETE CASCADE。
+
+### D1-D3 已确认决策
+67. D1 失物认领核验模式：发布者审核制
+68. D2 社区帖子管理归属：Agent 审核
+69. D3 实时聊天推送方式：Supabase Realtime
+
+### D4-D8 用户确认决策
+70. D4 失物归还确认机制：发布者单方标记
+71. D5 帖子频道枚举：扩展到5个固定值（campus_wall/announcement/newbie_guide/study/gaming/discussion）
+72. D6 FCM离线推送时机：Phase 6全场景推送（用户选B，FCM留Phase 6）。新增：Firebase项目创建+Migration 17扩充fcm_token+push-notification EdgeFn+FirebaseMessagingService
+73. D7 悬赏金处理：发布时冻结→归还确认后转交（类似淘宝/闲鱼）
+74. D8 群聊发送者信息：头像+昵称（JOIN profiles + 客户端缓存）
+
+### Phase 6 范围决策
+75. Phase 6范围：P0+P1全做（10 Screen+2 EdgeFn+Migration 17+Realtime SDK+图片上传+空态/错误态+conversation来源标签+帖子编辑/评论删除/群退出+通知deep link+通知分级）
+76. Migration 17合并范围：DDL扩展+3计数trigger+moderation_logs+RLS调整+数据一致性修复
+
+### 敏感词审核方案
+77. 本地敏感词库：textfilter 40核心词条+Aho-Corasick自动机+联系方式正则。block不存库，review存库仅作者可见
+78. Edge Function community-moderation：接管帖子/评论INSERT，三级风险分级。Migration 18扩展status CHECK+新建moderation_logs表
+80. Firebase 项目 campus-platform 已创建，google-services.json 已配置到 android/app/，服务帐号私钥已就绪。FCM Server Key 不需要（使用服务帐号 OAuth 2.0 认证 HTTP v1 API）

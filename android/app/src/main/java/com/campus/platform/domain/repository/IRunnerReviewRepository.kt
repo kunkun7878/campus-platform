@@ -9,5 +9,7 @@ interface IRunnerReviewRepository {
 
     fun getReviewsByReviewee(userId: String): Flow<List<RunnerReviewDto>>
 
+    fun getReviewsByReviewer(userId: String): Flow<List<RunnerReviewDto>>
+
     suspend fun createReview(review: RunnerReviewDto)
 }

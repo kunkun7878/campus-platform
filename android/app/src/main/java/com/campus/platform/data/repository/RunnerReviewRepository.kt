@@ -51,6 +51,10 @@ class RunnerReviewRepository @Inject constructor(
         return runnerDao.getReviewsByReviewee(userId).map { it.map { e -> e.toDto() } }
     }
 
+    override fun getReviewsByReviewer(userId: String): Flow<List<RunnerReviewDto>> {
+        return runnerDao.getReviewsByReviewer(userId).map { it.map { e -> e.toDto() } }
+    }
+
     override suspend fun createReview(review: RunnerReviewDto) {
         val result = supabase.postgrest
             .from("runner_reviews")

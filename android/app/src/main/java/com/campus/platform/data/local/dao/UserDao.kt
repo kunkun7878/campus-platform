@@ -66,6 +66,9 @@ interface UserDao {
     @Query("SELECT * FROM user_favorites WHERE userId = :userId ORDER BY createdAt DESC")
     fun getFavoritesByUserId(userId: String): Flow<List<UserFavoriteEntity>>
 
+    @Query("SELECT * FROM user_favorites WHERE userId = :userId AND targetType = :targetType ORDER BY createdAt DESC")
+    fun getFavoritesByUserIdAndType(userId: String, targetType: String): Flow<List<UserFavoriteEntity>>
+
     @Query("SELECT * FROM user_favorites WHERE userId = :userId AND targetType = :targetType AND targetId = :targetId")
     suspend fun getFavoriteByTarget(userId: String, targetType: String, targetId: String): UserFavoriteEntity?
 

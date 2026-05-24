@@ -127,3 +127,25 @@ data class RunnerApplicationEntity(
         const val STATUS_REJECTED = "rejected"
     }
 }
+
+@Entity(tableName = "order_timeline")
+data class OrderTimelineEntity(
+    @PrimaryKey val id: String,
+    val orderId: String,
+    val event: String,
+    val description: String? = null,
+    val operatorId: String? = null,
+    val schoolId: String,
+    val createdAt: String? = null,
+)
+
+@Entity(tableName = "after_sale_timeline")
+data class AfterSaleTimelineEntity(
+    @PrimaryKey val id: String,
+    val afterSaleId: String,
+    val event: String,
+    val description: String? = null,
+    val operatorId: String? = null,
+    val schoolId: String,
+    val createdAt: String? = null,
+)

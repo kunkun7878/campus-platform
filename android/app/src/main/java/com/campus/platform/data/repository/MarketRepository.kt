@@ -13,6 +13,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
@@ -60,6 +63,9 @@ class MarketRepository @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    private val _lastRefreshError = MutableStateFlow<String?>(null)
+    val lastRefreshError: StateFlow<String?> = _lastRefreshError.asStateFlow()
+
     override fun getListingsBySchool(schoolId: String): Flow<List<MarketListingDto>> {
         scope.launch { refreshListings(schoolId) }
         return marketDao.getListingsBySchoolId(schoolId).map { it.map { e -> e.toDto() } }
@@ -76,6 +82,10 @@ class MarketRepository @Inject constructor(
 
     override fun getListingsBySeller(userId: String): Flow<List<MarketListingDto>> {
         return marketDao.getListingsBySeller(userId).map { it.map { e -> e.toDto() } }
+    }
+
+    override fun getListingsByIdsFlow(ids: List<String>): Flow<List<MarketListingDto>> {
+        return marketDao.getListingsByIds(ids).map { it.map { e -> e.toDto() } }
     }
 
     override suspend fun publishListing(listing: MarketListingDto) {
@@ -97,6 +107,25 @@ class MarketRepository @Inject constructor(
         marketDao.upsertListing(result.toMapperDto().toEntity())
     }
 
+    override suspend fun updateListingStatus(id: String, expectedStatus: String, newStatus: String): Boolean {
+        return try {
+            val result = supabase.postgrest
+                .from("market_listings")
+                .update(mapOf("status" to newStatus)) {
+                    filter {
+                        eq("id", id)
+                        eq("status", expectedStatus)
+                    }
+                    select()
+                }
+                .decodeSingle<MarketListingApiDto>()
+            marketDao.upsertListing(result.toMapperDto().toEntity())
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     override suspend fun refreshListings(schoolId: String) {
         try {
             val result = supabase.postgrest
@@ -104,10 +133,12 @@ class MarketRepository @Inject constructor(
                 .select { filter { eq("school_id", schoolId) } }
                 .decodeList<MarketListingApiDto>()
             marketDao.upsertAllListings(result.map { it.toMapperDto().toEntity() })
+            _lastRefreshError.value = null
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Log.e(javaClass.simpleName, "Refresh error", e)
+            _lastRefreshError.value = "数据刷新失败，请稍后重试"
         }
     }
 }

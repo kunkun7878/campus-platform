@@ -7,7 +7,10 @@ import com.campus.platform.data.local.mapper.toDto
 import com.campus.platform.data.local.mapper.toEntity
 import com.campus.platform.domain.repository.ILostFoundRepository
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.postgrest
+import io.ktor.client.call.body
+import io.ktor.client.statement.bodyAsText
 import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +21,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -104,12 +113,39 @@ class LostFoundRepository @Inject constructor(
         return lostFoundDao.getItemsByPublisher(userId).map { it.map { e -> e.toDto() } }
     }
 
+    @Deprecated(
+        "Direct PostgREST insert bypasses EdgeFn wallet freeze. " +
+        "Use invokeLostItemLifecycle() instead.",
+        replaceWith = ReplaceWith(
+            "invokeLostItemLifecycle(mapOf(\"action\" to \"publish_item\", ...))"
+        )
+    )
     override suspend fun publishItem(item: LostFoundItemDto) {
-        val result = supabase.postgrest
-            .from("lost_found_items")
-            .insert(item.toApiDto()) { select() }
-            .decodeSingle<LostFoundItemApiDto>()
-        lostFoundDao.upsertItem(result.toMapperDto().toEntity())
+        // Delegate to EdgeFn so wallet freeze is enforced
+        val body = buildMap<String, Any?> {
+            put("action", "publish_item")
+            put("title", item.title)
+            put("type", item.type)
+            put("description", item.description)
+            put("images", item.images)
+            put("location", item.location)
+            put("lost_date", item.lostDate)
+            put("category", item.category)
+            put("reward", item.reward)
+            put("contact", item.contact)
+            put("school_id", item.schoolId)
+        }
+        val responseText = invokeLostItemLifecycle(body)
+        // Parse result to get assigned id, then refresh local cache
+        try {
+            val json = Json.parseToJsonElement(responseText) as JsonObject
+            val itemId = json["item_id"]?.jsonPrimitive?.content
+            if (itemId != null) {
+                refreshItemById(itemId)
+            }
+        } catch (_: Exception) {
+            // best-effort local refresh; the item exists server-side
+        }
     }
 
     override suspend fun updateItem(id: String, updates: Map<String, Any?>) {
@@ -150,6 +186,56 @@ class LostFoundRepository @Inject constructor(
             throw e
         } catch (e: Exception) {
             Log.e(javaClass.simpleName, "Refresh error", e)
+        }
+    }
+
+    // ── EdgeFn lifecycle ───────────────────────────────────────────
+
+    override suspend fun invokeLostItemLifecycle(body: Map<String, Any?>): String {
+        val jsonBody = buildJsonObject {
+            body.forEach { (key, value) ->
+                when (value) {
+                    is String -> put(key, value)
+                    is Int -> put(key, value)
+                    is Long -> put(key, value)
+                    is Double -> put(key, value)
+                    is Boolean -> put(key, value)
+                    null -> {} // skip nulls
+                    else -> put(key, value.toString())
+                }
+            }
+        }
+        val response = supabase.functions.invoke("lost-item-lifecycle", body = jsonBody)
+        return response.bodyAsText()
+    }
+
+    // ── Single-item refresh ────────────────────────────────────────
+
+    override suspend fun refreshItemById(id: String) {
+        try {
+            val result = supabase.postgrest
+                .from("lost_found_items")
+                .select { filter { eq("id", id) } }
+                .decodeSingle<LostFoundItemApiDto>()
+            lostFoundDao.upsertItem(result.toMapperDto().toEntity())
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "refreshItemById error for $id", e)
+        }
+    }
+
+    override suspend fun refreshClaimsByItemId(itemId: String) {
+        try {
+            val result = supabase.postgrest
+                .from("lost_found_claims")
+                .select { filter { eq("item_id", itemId) } }
+                .decodeList<LostFoundClaimApiDto>()
+            lostFoundDao.upsertAllClaims(result.map { it.toMapperDto().toEntity() })
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "refreshClaimsByItemId error for $itemId", e)
         }
     }
 }

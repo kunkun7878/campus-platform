@@ -7,8 +7,13 @@ import com.campus.platform.data.local.mapper.CommunityPostDto
 import com.campus.platform.data.local.mapper.toDto
 import com.campus.platform.data.local.mapper.toEntity
 import com.campus.platform.domain.repository.ICommunityRepository
+import com.campus.platform.domain.repository.ModerationResult
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.postgrest
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.statement.bodyAsText
 import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +24,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -137,6 +145,21 @@ class CommunityRepository @Inject constructor(
         communityDao.upsertComment(result.toMapperDto().toEntity())
     }
 
+    // ── Comment mutations ─────────────────────────────────────
+
+    override suspend fun deleteComment(commentId: String) {
+        supabase.postgrest
+            .from("community_comments")
+            .update(mapOf("status" to "deleted")) {
+                filter { eq("id", commentId) }
+            }
+        // 同时 mark 本地
+        val local = communityDao.getCommentById(commentId)
+        if (local != null) {
+            communityDao.upsertComment(local.copy(status = "deleted"))
+        }
+    }
+
     // ── Likes ──────────────────────────────────────────────────
 
     override suspend fun toggleLike(postId: String, userId: String): Boolean {
@@ -163,6 +186,224 @@ class CommunityRepository @Inject constructor(
 
     override fun getLikesByPostId(postId: String): Flow<List<String>> {
         return communityDao.getLikesByPostId(postId).map { it.map { like -> like.userId } }
+    }
+
+    // ── Moderation (EdgeFn) ────────────────────────────────────
+
+    override suspend fun publishPostViaModeration(post: CommunityPostDto): ModerationResult {
+        return try {
+            val jsonBody = buildJsonObject {
+                put("action", "publish_post")
+                put("id", post.id)
+                put("author_id", post.authorId)
+                put("section", post.section)
+                put("title", post.title)
+                put("content", post.content)
+                put("images", post.images)
+                put("school_id", post.schoolId)
+            }
+
+            val response = supabase.functions.invoke("community-moderation", body = jsonBody)
+            val bodyText = response.bodyAsText()
+
+            val moderationResponse = Json.decodeFromString<ModerationResponse>(bodyText)
+            // Use server-assigned post_id when available (EdgeFn auto-generates it).
+            val serverPostId = moderationResponse.postId ?: post.id
+            when (moderationResponse.action) {
+                "block" -> {
+                    // 仍写入本地以便作者在"我的帖子"中看到被拒状态
+                    val blockedPost = post.copy(id = serverPostId, status = "blocked")
+                    communityDao.upsertPost(blockedPost.toEntity())
+                    ModerationResult.Blocked(
+                        reason = moderationResponse.reason ?: "内容不符合社区规范"
+                    )
+                }
+                "review" -> {
+                    // EdgeFn already inserted with status=pending_review; sync local cache only.
+                    val reviewingPost = post.copy(id = serverPostId, status = "reviewing")
+                    communityDao.upsertPost(reviewingPost.toEntity())
+                    ModerationResult.Reviewing
+                }
+                else -> {
+                    // pass: EdgeFn already inserted with status=published; sync local cache only.
+                    val passedPost = post.copy(id = serverPostId, status = "published")
+                    communityDao.upsertPost(passedPost.toEntity())
+                    ModerationResult.Passed(postId = serverPostId)
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ClientRequestException) {
+            // ── 不可重试失败（4xx）：EdgeFn 不存在或请求格式错误，不降级 ──
+            Log.e(javaClass.simpleName, "EdgeFn returned ${e.response.status.value}: ${e.message}")
+            ModerationResult.Error("请求失败 (${e.response.status.value})")
+        } catch (e: ServerResponseException) {
+            // ── 可重试失败（5xx）：降级直写 ──
+            Log.e(javaClass.simpleName, "EdgeFn returned ${e.response.status.value}, falling back to direct insert")
+            fallbackInsertPost(post)
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Moderation EdgeFn network error", e)
+            // 网络错误（timeout/连接失败）视为可重试，降级直写
+            fallbackInsertPost(post)
+        }
+    }
+
+    private suspend fun fallbackInsertPost(post: CommunityPostDto): ModerationResult {
+        return try {
+            val result = supabase.postgrest
+                .from("community_posts")
+                .insert(post.toApiDto()) { select() }
+                .decodeSingle<CommunityPostApiDto>()
+            communityDao.upsertPost(result.toMapperDto().toEntity())
+            ModerationResult.Passed(postId = post.id)
+        } catch (inner: Exception) {
+            Log.e(javaClass.simpleName, "Fallback insert failed", inner)
+            throw inner
+        }
+    }
+
+    // ── Moderation: edit post via EdgeFn ────────────────────────
+
+    override suspend fun updatePostViaModeration(post: CommunityPostDto): ModerationResult {
+        return try {
+            val jsonBody = buildJsonObject {
+                put("action", "update_post")
+                put("id", post.id)
+                put("author_id", post.authorId)
+                put("section", post.section)
+                put("title", post.title)
+                put("content", post.content)
+                put("images", post.images)
+                put("school_id", post.schoolId)
+            }
+
+            val response = supabase.functions.invoke("community-moderation", body = jsonBody)
+            val bodyText = response.bodyAsText()
+
+            val moderationResponse = Json.decodeFromString<ModerationResponse>(bodyText)
+            when (moderationResponse.action) {
+                "block" -> {
+                    // 更新本地状态为 blocked 以便作者可见
+                    communityDao.upsertPost(post.copy(status = "blocked").toEntity())
+                    ModerationResult.Blocked(
+                        reason = moderationResponse.reason ?: "编辑内容不符合社区规范"
+                    )
+                }
+                "review" -> {
+                    // EdgeFn 已更新 DB；同步本地缓存即可（不再重复调用 REST UPDATE）
+                    communityDao.upsertPost(post.copy(status = "pending_review").toEntity())
+                    ModerationResult.Reviewing
+                }
+                else -> {
+                    // pass: EdgeFn 已更新 DB；同步本地缓存即可
+                    communityDao.upsertPost(post.copy(status = "published").toEntity())
+                    ModerationResult.Passed(postId = post.id)
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ClientRequestException) {
+            // ── 不可重试失败（4xx）：EdgeFn 不存在或请求格式错误，不降级 ──
+            Log.e(javaClass.simpleName, "EdgeFn returned ${e.response.status.value}: ${e.message}")
+            ModerationResult.Error("编辑请求失败 (${e.response.status.value})")
+        } catch (e: ServerResponseException) {
+            // ── 可重试失败（5xx）：降级直写 ──
+            Log.e(javaClass.simpleName, "EdgeFn returned ${e.response.status.value}, falling back to direct update")
+            fallbackUpdatePost(post)
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Moderation EdgeFn network error during update", e)
+            // 网络错误（timeout/连接失败）降级直写
+            fallbackUpdatePost(post)
+        }
+    }
+
+    private suspend fun fallbackUpdatePost(post: CommunityPostDto): ModerationResult {
+        return try {
+            val result = supabase.postgrest
+                .from("community_posts")
+                .update(
+                    mapOf(
+                        "title" to post.title,
+                        "content" to post.content,
+                        "images" to post.images,
+                        "status" to "published",
+                    )
+                ) {
+                    filter { eq("id", post.id) }
+                    select()
+                }
+                .decodeSingle<CommunityPostApiDto>()
+            communityDao.upsertPost(result.toMapperDto().toEntity())
+            ModerationResult.Passed(postId = post.id)
+        } catch (inner: Exception) {
+            Log.e(javaClass.simpleName, "Fallback update failed", inner)
+            throw inner
+        }
+    }
+
+    // ── Moderation: publish comment via EdgeFn ──────────────────
+
+    override suspend fun publishCommentViaModeration(comment: CommunityCommentDto): ModerationResult {
+        return try {
+            val jsonBody = buildJsonObject {
+                put("action", "publish_comment")
+                put("post_id", comment.postId)
+                put("content", comment.content)
+                put("school_id", comment.schoolId)
+                comment.parentId?.let { put("parent_id", it) }
+            }
+
+            val response = supabase.functions.invoke("community-moderation", body = jsonBody)
+            val bodyText = response.bodyAsText()
+
+            val moderationResponse = Json.decodeFromString<ModerationResponse>(bodyText)
+            val serverCommentId = moderationResponse.commentId ?: comment.id
+            when (moderationResponse.action) {
+                "block" -> {
+                    // 本地写入 blocked 状态以便作者可见
+                    val blocked = comment.copy(id = serverCommentId, status = "blocked")
+                    communityDao.upsertComment(blocked.toEntity())
+                    ModerationResult.Blocked(
+                        reason = moderationResponse.reason ?: "评论内容不符合社区规范"
+                    )
+                }
+                "review" -> {
+                    val reviewing = comment.copy(id = serverCommentId, status = "pending_review")
+                    communityDao.upsertComment(reviewing.toEntity())
+                    ModerationResult.Reviewing
+                }
+                else -> {
+                    val published = comment.copy(id = serverCommentId, status = "published")
+                    communityDao.upsertComment(published.toEntity())
+                    ModerationResult.Passed(postId = serverCommentId)
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ClientRequestException) {
+            Log.e(javaClass.simpleName, "EdgeFn returned ${e.response.status.value}: ${e.message}")
+            ModerationResult.Error("请求失败 (${e.response.status.value})")
+        } catch (e: ServerResponseException) {
+            Log.e(javaClass.simpleName, "EdgeFn returned ${e.response.status.value}, falling back to direct comment insert")
+            fallbackInsertComment(comment)
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Moderation EdgeFn network error for comment", e)
+            fallbackInsertComment(comment)
+        }
+    }
+
+    private suspend fun fallbackInsertComment(comment: CommunityCommentDto): ModerationResult {
+        return try {
+            val result = supabase.postgrest
+                .from("community_comments")
+                .insert(comment.toApiDto()) { select() }
+                .decodeSingle<CommunityCommentApiDto>()
+            communityDao.upsertComment(result.toMapperDto().toEntity())
+            ModerationResult.Passed(postId = comment.id)
+        } catch (inner: Exception) {
+            Log.e(javaClass.simpleName, "Fallback comment insert failed", inner)
+            throw inner
+        }
     }
 
     // ── Refresh ────────────────────────────────────────────────
@@ -195,3 +436,14 @@ class CommunityRepository @Inject constructor(
         }
     }
 }
+
+// ── Moderation EdgeFn DTOs ─────────────────────────────────────
+
+@Serializable
+private data class ModerationResponse(
+    val action: String,   // "block" | "review" | "pass"
+    val reason: String? = null,
+    @SerialName("post_id") val postId: String? = null,
+    @SerialName("comment_id") val commentId: String? = null,
+    val status: String? = null,
+)

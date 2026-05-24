@@ -1,11 +1,14 @@
 package com.campus.platform.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
 import com.campus.platform.data.model.Profile
 import com.campus.platform.navigation.AppStartDestination
 import com.campus.platform.navigation.determineStartDestination
+import com.campus.platform.push.CampusMessagingService
+import com.campus.platform.push.FcmTokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val fcmTokenManager: FcmTokenManager,
 ) : ViewModel() {
 
     sealed interface SplashUiState {
@@ -58,9 +62,14 @@ class SplashViewModel @Inject constructor(
                     profile = authRepository.getProfile()
                 }
                 val destination = determineStartDestination(isAuth, profile)
+                // Save pending FCM token now that a user is authenticated
+                if (isAuth && profile != null) {
+                    savePendingFcmToken(profile.id)
+                }
                 _uiState.value = SplashUiState.Destination(destination, profile)
             } catch (e: Exception) {
-                _uiState.value = SplashUiState.Error(e.message ?: "启动失败")
+                Log.e("SplashViewModel", "启动失败", e)
+                _uiState.value = SplashUiState.Error("启动失败，请检查网络连接")
             }
         }
     }
@@ -79,10 +88,25 @@ class SplashViewModel @Inject constructor(
                 } else {
                     AppStartDestination.SchoolSelect
                 }
+                if (profile != null) {
+                    savePendingFcmToken(profile.id)
+                }
                 _uiState.value = SplashUiState.Destination(target, profile)
             } catch (e: Exception) {
-                _uiState.value = SplashUiState.Error(e.message ?: "加载用户信息失败")
+                Log.e("SplashViewModel", "加载用户信息失败", e)
+                _uiState.value = SplashUiState.Error("加载用户信息失败，请稍后重试")
             }
+        }
+    }
+
+    /**
+     * If the FCM service cached a token before the user logged in,
+     * save it now with the real userId.
+     */
+    private fun savePendingFcmToken(userId: String) {
+        val token = CampusMessagingService.pendingToken ?: return
+        viewModelScope.launch {
+            fcmTokenManager.saveToken(userId, token)
         }
     }
 }

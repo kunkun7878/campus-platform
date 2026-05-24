@@ -1,28 +1,42 @@
 # 校园聚合平台 - 当前迭代
 
-<!-- last_sync: 2026-05-22T20:00 CST -->
+<!-- last_sync: 2026-05-24T16:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_decisions]] · [[campus_rules]] · [[campus_work_rules]]
 
 ## 迭代：Android MVP 正式开发
 
-状态：**Phase 3 完成 ✅ → 准备进入 Phase 4**
+状态：**Phase 5 完成 ✅ → Phase 6 完成 ✅ → Phase 7 待开始**
 
 ### 本轮目标
 从 HTML 原型阶段进入 Android 原生应用正式开发，按 8 Phase（Phase 0-7）推进至 MVP，34 screen + 36 张数据库表全部可用。
 
 ### 8 Phase 路线图（Phase 0-7）
 
-| Phase | 内容                                            |  状态  |
-| ----- | --------------------------------------------- | :--: |
-| 0     | 环境搭建（AS + SDK + 项目创建 + 依赖配置 + git init）       | ✅ 完成 |
-| 1     | 项目骨架 + 主题 + 导航（5 Tab + 34 route 占位）           | ✅ 完成 |
-| 2     | 认证 + 选校（Supabase Auth + 4表 + 6 screen）        | ✅ 完成 |
-| 3     | 数据层基座（36表DDL + Room + Repository + ViewModel） | ✅ 完成 |
-| 4     | 跑腿全链路（8 screen）                               | 待开始  |
-| 5     | 二手交易（4 screen）                                | 待开始  |
-| 6     | 失物招领 + 社区（9 screen + 实时聊天）                    | 待开始  |
-| 7     | 收口补齐（推送 + 三态 + 图片 + 全链路验证）                    | 待开始  |
+| Phase | 内容                                                    |  状态  |
+| ----- | ----------------------------------------------------- | :--: |
+| 0     | 环境搭建（AS + SDK + 项目创建 + 依赖配置 + git init）               | ✅ 完成 |
+| 1     | 项目骨架 + 主题 + 导航（5 Tab + 34 route 占位）                   | ✅ 完成 |
+| 2     | 认证 + 选校（Supabase Auth + 4表 + 6 screen）                | ✅ 完成 |
+| 3     | 数据层基座（36表DDL + Room + Repository + ViewModel）         | ✅ 完成 |
+| 4     | 跑腿全链路（8 screen + 2 Edge Function）                     | ✅ 完成 |
+| 5     | 二手交易（7 screen + 1 Edge Function + 6 组件 + UiState 改造）  | ✅ 完成 |
+| 6     | 失物招领 + 社区（10 screen + Realtime + 图片 + FCM + 3 EdgeFn） | ✅ 完成 |
+| 7     | 收口补齐（云AI审核 + Agent后台 + 全链路验证）                         | 待开始  |
+|       |                                                       |      |
+
+### Phase 4 任务（已完成 ✅）
+
+- [x] RLS 漏洞修复（migration 15 — 4 处策略修复 + revert）
+- [x] Supabase Edge Function（runner-order-lifecycle + runner-after-sale，共 946 行 TS）
+- [x] Timeline 数据层补全（2 Entity + 2 DTO + 8 DAO 查询 + 2 Repository 接口 + 2 实现 + DI）
+- [x] Screen 目录重组（4 Screen + 4 ViewModel 从 market/ 迁到 runner/）
+- [x] 6 个通用 UI 组件（RunnerTaskCard / OrderStatusTimeline / RunnerTypeFilter / OrderCard / RunnerEmptyState / RunnerPriceTag）
+- [x] 8 个 Screen + 8 个 ViewModel 从占位→完整业务实现
+- [x] OrderDetailScreen 含评价嵌入（星级评分 + 文字评价，表单→只读展示转换）
+- [x] OrderListScreen 含 Tab 合并（我发布的/我接的单 + 状态子筛选）
+- [x] Supabase Functions SDK 集成（functions-kt 依赖 + AuthModule install + build.gradle.kts）
+- [x] 编译验证：BUILD SUCCESSFUL
 
 ### Phase 3 任务（已完成 ✅）
 

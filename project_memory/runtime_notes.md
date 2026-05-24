@@ -1,6 +1,6 @@
 # 校园聚合平台 - 运行环境与预览说明
 
-<!-- last_sync: 2026-05-22T20:00 CST -->
+<!-- last_sync: 2026-05-23T23:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[codebase_map]]
 

@@ -8,6 +8,8 @@ import com.campus.platform.data.local.entity.RunnerOrderEntity
 import com.campus.platform.data.local.entity.RunnerReviewEntity
 import com.campus.platform.data.local.entity.AfterSaleEntity
 import com.campus.platform.data.local.entity.RunnerApplicationEntity
+import com.campus.platform.data.local.entity.OrderTimelineEntity
+import com.campus.platform.data.local.entity.AfterSaleTimelineEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -30,11 +32,11 @@ interface RunnerDao {
     @Query("SELECT * FROM runner_tasks WHERE id = :id")
     suspend fun getTaskById(id: String): RunnerTaskEntity?
 
-    @Query("SELECT * FROM runner_tasks WHERE publisherId = :userId ORDER BY createdAt DESC")
-    fun getTasksByPublisher(userId: String): Flow<List<RunnerTaskEntity>>
+    @Query("SELECT * FROM runner_tasks WHERE publisherId = :userId AND schoolId = :schoolId ORDER BY createdAt DESC")
+    fun getTasksByPublisher(userId: String, schoolId: String): Flow<List<RunnerTaskEntity>>
 
-    @Query("SELECT * FROM runner_tasks WHERE runnerId = :userId ORDER BY createdAt DESC")
-    fun getTasksByRunner(userId: String): Flow<List<RunnerTaskEntity>>
+    @Query("SELECT * FROM runner_tasks WHERE runnerId = :userId AND schoolId = :schoolId ORDER BY createdAt DESC")
+    fun getTasksByRunner(userId: String, schoolId: String): Flow<List<RunnerTaskEntity>>
 
     @Query("DELETE FROM runner_tasks WHERE createdAt < :before")
     suspend fun deleteTasksOlderThan(before: String)
@@ -59,8 +61,8 @@ interface RunnerDao {
     @Query("SELECT * FROM runner_orders WHERE buyerId = :userId ORDER BY createdAt DESC")
     fun getOrdersByBuyer(userId: String): Flow<List<RunnerOrderEntity>>
 
-    @Query("SELECT * FROM runner_orders WHERE runnerId = :userId ORDER BY createdAt DESC")
-    fun getOrdersByRunner(userId: String): Flow<List<RunnerOrderEntity>>
+    @Query("SELECT * FROM runner_orders WHERE runnerId = :userId AND schoolId = :schoolId ORDER BY createdAt DESC")
+    fun getOrdersByRunner(userId: String, schoolId: String): Flow<List<RunnerOrderEntity>>
 
     @Query("SELECT * FROM runner_orders WHERE taskId = :taskId ORDER BY createdAt DESC")
     fun getOrdersByTaskId(taskId: String): Flow<List<RunnerOrderEntity>>
@@ -84,6 +86,9 @@ interface RunnerDao {
 
     @Query("SELECT * FROM runner_reviews WHERE orderId = :orderId ORDER BY createdAt DESC")
     fun getReviewsByOrderId(orderId: String): Flow<List<RunnerReviewEntity>>
+
+    @Query("SELECT * FROM runner_reviews WHERE reviewerId = :userId ORDER BY createdAt DESC")
+    fun getReviewsByReviewer(userId: String): Flow<List<RunnerReviewEntity>>
 
     @Query("DELETE FROM runner_reviews WHERE createdAt < :before")
     suspend fun deleteReviewsOlderThan(before: String)
@@ -127,4 +132,32 @@ interface RunnerDao {
 
     @Query("DELETE FROM runner_applications")
     suspend fun deleteAllApplications()
+
+    // ── OrderTimeline ────────────────────────────────────────
+
+    @Upsert
+    suspend fun upsertTimelineEvent(event: OrderTimelineEntity)
+
+    @Upsert
+    suspend fun upsertAllTimelineEvents(events: List<OrderTimelineEntity>)
+
+    @Query("SELECT * FROM order_timeline WHERE orderId = :orderId ORDER BY createdAt ASC")
+    fun getTimelineByOrderId(orderId: String): Flow<List<OrderTimelineEntity>>
+
+    @Query("DELETE FROM order_timeline WHERE orderId = :orderId")
+    suspend fun deleteTimelineByOrderId(orderId: String)
+
+    // ── AfterSaleTimeline ────────────────────────────────────
+
+    @Upsert
+    suspend fun upsertAfterSaleTimelineEvent(event: AfterSaleTimelineEntity)
+
+    @Upsert
+    suspend fun upsertAllAfterSaleTimelineEvents(events: List<AfterSaleTimelineEntity>)
+
+    @Query("SELECT * FROM after_sale_timeline WHERE afterSaleId = :afterSaleId ORDER BY createdAt ASC")
+    fun getTimelineByAfterSaleId(afterSaleId: String): Flow<List<AfterSaleTimelineEntity>>
+
+    @Query("DELETE FROM after_sale_timeline WHERE afterSaleId = :afterSaleId")
+    suspend fun deleteTimelineByAfterSaleId(afterSaleId: String)
 }

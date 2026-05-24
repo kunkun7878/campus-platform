@@ -1,6 +1,6 @@
 # 校园聚合平台 - 待确认问题
 
-<!-- last_sync: 2026-05-22T14:00 CST -->
+<!-- last_sync: 2026-05-23T23:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_decisions]] · [[campus_rules]] · [[codebase_map]] · [[runtime_notes]] · [[campus_ui_decisions]] · [[iteration_current]]
 
@@ -24,18 +24,21 @@
 16. ✅ 聊天系统到群聊页面程度：已完成
 17. ✅ Supabase 项目已注册：campus-platform（ap-southeast-1，项目ref: fzmdhllxzyyzfpxkqpdy）。URL: https://fzmdhllxzyyzfpxkqpdy.supabase.co
 
+## 已确认（Phase 6 闭环）
+
+1. ✅ Firebase 项目：Phase 6 创建（用户已选方案 B，FCM 留 Phase 6）
+2. ✅ 社区审核规则：Phase 6 本地敏感词（textfilter + Aho-Corasick），云端 AI 留 Phase 7
+3. ✅ 官方群管理规则：Phase 6 DDL 扩展 direction 至 5 方向，Agent 管理后台留 Phase 7+
+4. ✅ 决策 #33 冲突：用户确认修正（school_id RESTRICT + 内容表 CASCADE）
+5. ✅ Phase 6 范围：P0+P1 全做，FCM 留 Phase 6
+
 ## 待用户确认
 
 1. Android Studio 中文插件：等待 JetBrains 更新到支持平台 253（2025.3）
-2. Firebase 项目：何时创建？（Phase 7 FCM 推送前需要）
-3. 社区的审核、发言、官方群管理规则由谁定义？→ 待 Phase 6
-4. 代理后台的具体功能范围和权限边界？→ 待 Phase 7+
 
-## 已确认（Phase 2 闭环）
+## 待推进（Phase 7+）
 
-5. ✅ 选校后不可自由切换，客服申诉通道，同校多校区可自由切换
-
-## 新增待跟进
-6. Supabase Kotlin SDK verifyOtp() 兼容性问题（OtpType.Phone enum），密码登录可用
-7. 微信开放平台企业认证 → 微信登录搁置
-8. domain-model skill 是否已安装到 `.claude/skills/`？§7.1.1 经理 skill 表列出了 domain-model，但需要确认 skill 文件实际存在且可用
+2. 代理后台的具体功能范围和权限边界？
+3. 微信开放平台企业认证 → 微信登录
+4. 云端 AI 内容审核（阿里云/腾讯云）
+5. 悬赏金自动过期退款（30 天无人认领 → 解冻退回）

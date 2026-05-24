@@ -76,12 +76,12 @@ class RunnerTaskRepository @Inject constructor(
         return runnerDao.getTaskById(id)?.toDto()
     }
 
-    override fun getTasksByPublisher(userId: String): Flow<List<RunnerTaskDto>> {
-        return runnerDao.getTasksByPublisher(userId).map { it.map { e -> e.toDto() } }
+    override fun getTasksByPublisher(userId: String, schoolId: String): Flow<List<RunnerTaskDto>> {
+        return runnerDao.getTasksByPublisher(userId, schoolId).map { it.map { e -> e.toDto() } }
     }
 
-    override fun getTasksByRunner(userId: String): Flow<List<RunnerTaskDto>> {
-        return runnerDao.getTasksByRunner(userId).map { it.map { e -> e.toDto() } }
+    override fun getTasksByRunner(userId: String, schoolId: String): Flow<List<RunnerTaskDto>> {
+        return runnerDao.getTasksByRunner(userId, schoolId).map { it.map { e -> e.toDto() } }
     }
 
     override suspend fun publishTask(task: RunnerTaskDto) {
@@ -115,5 +115,13 @@ class RunnerTaskRepository @Inject constructor(
         } catch (e: Exception) {
             Log.e(javaClass.simpleName, "Refresh error", e)
         }
+    }
+
+    override suspend fun refreshTask(taskId: String) {
+        val result = supabase.postgrest
+            .from("runner_tasks")
+            .select { filter { eq("id", taskId) } }
+            .decodeSingle<RunnerTaskApiDto>()
+        runnerDao.upsertTask(result.toMapperDto().toEntity())
     }
 }

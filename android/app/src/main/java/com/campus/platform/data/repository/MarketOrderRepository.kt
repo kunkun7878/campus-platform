@@ -13,6 +13,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
@@ -52,6 +55,9 @@ class MarketOrderRepository @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    private val _lastRefreshError = MutableStateFlow<String?>(null)
+    val lastRefreshError: StateFlow<String?> = _lastRefreshError.asStateFlow()
+
     override fun getOrdersByBuyer(userId: String): Flow<List<MarketOrderDto>> {
         return marketDao.getOrdersByBuyer(userId).map { it.map { e -> e.toDto() } }
     }
@@ -90,10 +96,12 @@ class MarketOrderRepository @Inject constructor(
                 .select { filter { eq("school_id", schoolId) } }
                 .decodeList<MarketOrderApiDto>()
             marketDao.upsertAllOrders(result.map { it.toMapperDto().toEntity() })
+            _lastRefreshError.value = null
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Log.e(javaClass.simpleName, "Refresh error", e)
+            _lastRefreshError.value = "数据刷新失败，请稍后重试"
         }
     }
 }

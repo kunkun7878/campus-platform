@@ -21,6 +21,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.campus.platform.ui.component.CampusMainScaffold
+import com.campus.platform.ui.component.ScreenPlaceholder
 import com.campus.platform.ui.screen.auth.AccountDeleteScreen
 import com.campus.platform.ui.screen.auth.LoginScreen
 import com.campus.platform.ui.screen.auth.PasswordResetScreen
@@ -35,12 +36,13 @@ import com.campus.platform.ui.screen.home.GoodsDetailScreen
 import com.campus.platform.ui.screen.home.HomeScreen
 import com.campus.platform.ui.screen.home.LostClaimScreen
 import com.campus.platform.ui.screen.home.LostDetailScreen
-import com.campus.platform.ui.screen.market.AfterSaleApplyScreen
-import com.campus.platform.ui.screen.market.AfterSaleDetailScreen
 import com.campus.platform.ui.screen.market.LostPublishScreen
+import com.campus.platform.ui.screen.market.MarketOrderDetailScreen
 import com.campus.platform.ui.screen.market.MarketPublishScreen
-import com.campus.platform.ui.screen.market.OrderDetailScreen
-import com.campus.platform.ui.screen.market.OrderListScreen
+import com.campus.platform.ui.screen.runner.AfterSaleApplyScreen
+import com.campus.platform.ui.screen.runner.AfterSaleDetailScreen
+import com.campus.platform.ui.screen.runner.OrderDetailScreen
+import com.campus.platform.ui.screen.runner.OrderListScreen
 import com.campus.platform.ui.screen.message.ChatDetailScreen
 import com.campus.platform.ui.screen.message.MessageScreen
 import com.campus.platform.ui.screen.profile.AboutScreen
@@ -201,7 +203,21 @@ fun CampusNavGraph(
                 composable<GoodsDetail> {
                     GoodsDetailScreen(navController = navController)
                 }
+                // String-based alias for FCM deep links
+                composable(
+                    route = CampusRoutes.GoodsDetailRoute.route,
+                    arguments = listOf(navArgument("goodsId") { type = NavType.StringType }),
+                ) {
+                    GoodsDetailScreen(navController = navController)
+                }
                 composable<LostDetail> {
+                    LostDetailScreen(navController = navController)
+                }
+                // String-based alias for FCM deep links
+                composable(
+                    route = CampusRoutes.LostDetailRoute.route,
+                    arguments = listOf(navArgument("lostId") { type = NavType.StringType }),
+                ) {
                     LostDetailScreen(navController = navController)
                 }
                 composable<LostClaim> {
@@ -337,6 +353,12 @@ fun CampusNavGraph(
                 }
                 composable(CampusRoutes.MyFavorites.route) {
                     MyFavoritesScreen(navController = navController)
+                }
+                composable(
+                    route = CampusRoutes.MarketOrderDetail.route,
+                    arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
+                ) {
+                    MarketOrderDetailScreen(navController = navController)
                 }
             }
         }

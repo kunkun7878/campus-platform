@@ -70,14 +70,28 @@ sealed class CampusRoutes(val route: String) {
     data object MarketPublish : CampusRoutes("market-publish")
     data object LostPublish : CampusRoutes("lost-publish")
 
+    // String-based aliases for type-safe routes (used by FCM deep links)
+    data object LostDetailRoute : CampusRoutes("lost-detail/{lostId}") {
+        fun createRoute(lostId: String) = "lost-detail/$lostId"
+    }
+    data object GoodsDetailRoute : CampusRoutes("goods-detail/{goodsId}") {
+        fun createRoute(goodsId: String) = "goods-detail/$goodsId"
+    }
+
     data object OrderDetail : CampusRoutes("order-detail/{orderId}") {
         fun createRoute(orderId: String) = "order-detail/$orderId"
+    }
+
+    data object MarketOrderDetail : CampusRoutes("market-order-detail/{orderId}") {
+        fun createRoute(orderId: String) = "market-order-detail/$orderId"
     }
 
     // ── 发布子屏 ─────────────────────────────────────────
     data object Publish : CampusRoutes("publish")
 
-    data object OrderList : CampusRoutes("order-list")
+    data object OrderList : CampusRoutes("order-list/{tab}") {
+        fun createRoute(tab: String = "published") = "order-list/$tab"
+    }
 
     data object AfterSaleApply : CampusRoutes("after-sale-apply/{orderId}") {
         fun createRoute(orderId: String) = "after-sale-apply/$orderId"

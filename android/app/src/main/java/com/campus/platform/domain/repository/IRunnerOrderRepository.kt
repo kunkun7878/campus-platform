@@ -7,7 +7,7 @@ interface IRunnerOrderRepository {
 
     fun getOrdersByBuyer(userId: String): Flow<List<RunnerOrderDto>>
 
-    fun getOrdersByRunner(userId: String): Flow<List<RunnerOrderDto>>
+    fun getOrdersByRunner(userId: String, schoolId: String): Flow<List<RunnerOrderDto>>
 
     fun getOrdersByTaskId(taskId: String): Flow<List<RunnerOrderDto>>
 
@@ -18,4 +18,7 @@ interface IRunnerOrderRepository {
     suspend fun updateOrderStatus(id: String, status: String)
 
     suspend fun refreshOrders(schoolId: String)
+
+    /** 强制从 Supabase 重新拉取单条订单并 upsert Room */
+    suspend fun refreshOrder(orderId: String)
 }

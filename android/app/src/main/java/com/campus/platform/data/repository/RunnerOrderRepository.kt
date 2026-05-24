@@ -57,8 +57,8 @@ class RunnerOrderRepository @Inject constructor(
         return runnerDao.getOrdersByBuyer(userId).map { it.map { e -> e.toDto() } }
     }
 
-    override fun getOrdersByRunner(userId: String): Flow<List<RunnerOrderDto>> {
-        return runnerDao.getOrdersByRunner(userId).map { it.map { e -> e.toDto() } }
+    override fun getOrdersByRunner(userId: String, schoolId: String): Flow<List<RunnerOrderDto>> {
+        return runnerDao.getOrdersByRunner(userId, schoolId).map { it.map { e -> e.toDto() } }
     }
 
     override fun getOrdersByTaskId(taskId: String): Flow<List<RunnerOrderDto>> {
@@ -100,5 +100,13 @@ class RunnerOrderRepository @Inject constructor(
         } catch (e: Exception) {
             Log.e(javaClass.simpleName, "Refresh error", e)
         }
+    }
+
+    override suspend fun refreshOrder(orderId: String) {
+        val result = supabase.postgrest
+            .from("runner_orders")
+            .select { filter { eq("id", orderId) } }
+            .decodeSingle<RunnerOrderApiDto>()
+        runnerDao.upsertOrder(result.toMapperDto().toEntity())
     }
 }

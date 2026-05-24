@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt.android.plugin)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
 }
 
 // Room schema 导出 — 用于数据库版本迁移的自动化测试
@@ -141,6 +142,13 @@ dependencies {
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.compose.auth)
     implementation(libs.supabase.storage)
+    implementation(libs.supabase.functions)
+    implementation(libs.supabase.realtime)
+
+    // Firebase BoM (FCM)
+    val firebaseBom = platform(libs.firebase.bom)
+    implementation(firebaseBom)
+    implementation(libs.firebase.messaging.ktx)
 
     // Security
     implementation(libs.androidx.security.crypto)

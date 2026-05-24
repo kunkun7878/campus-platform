@@ -1,6 +1,8 @@
 package com.campus.platform.data.local.mapper
 
 import com.campus.platform.data.local.entity.AfterSaleEntity
+import com.campus.platform.data.local.entity.AfterSaleTimelineEntity
+import com.campus.platform.data.local.entity.OrderTimelineEntity
 import com.campus.platform.data.local.entity.RunnerApplicationEntity
 import com.campus.platform.data.local.entity.RunnerOrderEntity
 import com.campus.platform.data.local.entity.RunnerReviewEntity
@@ -251,4 +253,68 @@ fun RunnerApplicationDto.toEntity(): RunnerApplicationEntity = RunnerApplication
     schoolId = schoolId,
     createdAt = createdAt,
     updatedAt = updatedAt,
+)
+
+// ── OrderTimeline DTO ──────────────────────────────────────
+
+data class OrderTimelineDto(
+    val id: String,
+    val orderId: String,
+    val event: String,
+    val description: String?,
+    val operatorId: String?,
+    val schoolId: String,
+    val createdAt: String?,
+)
+
+fun OrderTimelineEntity.toDto(): OrderTimelineDto = OrderTimelineDto(
+    id = id,
+    orderId = orderId,
+    event = event,
+    description = description,
+    operatorId = operatorId,
+    schoolId = schoolId,
+    createdAt = createdAt,
+)
+
+fun OrderTimelineDto.toEntity(): OrderTimelineEntity = OrderTimelineEntity(
+    id = id,
+    orderId = orderId,
+    event = event,
+    description = description,
+    operatorId = operatorId,
+    schoolId = schoolId,
+    createdAt = createdAt,
+)
+
+// ── AfterSaleTimeline DTO ──────────────────────────────────
+
+data class AfterSaleTimelineDto(
+    val id: String,
+    val afterSaleId: String,
+    val event: String,
+    val description: String?,
+    val operatorId: String?,
+    val schoolId: String,
+    val createdAt: String?,
+)
+
+fun AfterSaleTimelineEntity.toDto(): AfterSaleTimelineDto = AfterSaleTimelineDto(
+    id = id,
+    afterSaleId = afterSaleId,
+    event = event,
+    description = description,
+    operatorId = operatorId,
+    schoolId = schoolId,
+    createdAt = createdAt,
+)
+
+fun AfterSaleTimelineDto.toEntity(): AfterSaleTimelineEntity = AfterSaleTimelineEntity(
+    id = id,
+    afterSaleId = afterSaleId,
+    event = event,
+    description = description,
+    operatorId = operatorId,
+    schoolId = schoolId,
+    createdAt = createdAt,
 )

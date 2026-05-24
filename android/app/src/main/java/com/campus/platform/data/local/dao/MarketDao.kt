@@ -30,6 +30,9 @@ interface MarketDao {
     @Query("SELECT * FROM market_listings WHERE id = :id")
     suspend fun getListingById(id: String): MarketListingEntity?
 
+    @Query("SELECT * FROM market_listings WHERE id IN (:ids)")
+    fun getListingsByIds(ids: List<String>): Flow<List<MarketListingEntity>>
+
     @Query("SELECT * FROM market_listings WHERE sellerId = :userId ORDER BY createdAt DESC")
     fun getListingsBySeller(userId: String): Flow<List<MarketListingEntity>>
 

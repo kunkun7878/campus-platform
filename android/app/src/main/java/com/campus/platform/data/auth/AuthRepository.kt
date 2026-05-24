@@ -1,6 +1,7 @@
 package com.campus.platform.data.auth
 
 import com.campus.platform.data.model.Profile
+import com.campus.platform.push.FcmTokenManager
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -23,6 +24,7 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepository @Inject constructor(
     private val supabase: SupabaseClient,
+    private val fcmTokenManager: FcmTokenManager,
 ) {
 
     // ── Session ────────────────────────────────────────────
@@ -191,6 +193,9 @@ class AuthRepository @Inject constructor(
     /** 软删除账号 */
     suspend fun deleteAccount(reason: String? = null) {
         val uid = currentUserId() ?: return
+        // Deactivate all FCM tokens before sign-out so push notifications
+        // stop targeting this user's old devices.
+        fcmTokenManager.deactivateAllTokens(uid)
         supabase.postgrest
             .from("profiles")
             .update(
@@ -206,6 +211,9 @@ class AuthRepository @Inject constructor(
 
     /** 退出登录 */
     suspend fun signOut() {
+        // Deactivate all FCM tokens before sign-out so push notifications
+        // stop targeting this user's old devices.
+        currentUserId()?.let { fcmTokenManager.deactivateAllTokens(it) }
         supabase.auth.signOut()
     }
 

@@ -23,11 +23,6 @@ data class MarketListingEntity(
     val updatedAt: String? = null,
 ) {
     companion object {
-        const val CONDITION_BRAND_NEW = "brand_new"
-        const val CONDITION_LIKE_NEW = "like_new"
-        const val CONDITION_GOOD = "good"
-        const val CONDITION_FAIR = "fair"
-        const val CONDITION_POOR = "poor"
         const val STATUS_ACTIVE = "active"
         const val STATUS_RESERVED = "reserved"
         const val STATUS_SOLD = "sold"

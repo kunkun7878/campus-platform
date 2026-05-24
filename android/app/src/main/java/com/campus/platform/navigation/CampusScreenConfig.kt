@@ -125,6 +125,13 @@ fun campusScreenConfigFor(currentRoute: String?): CampusScreenConfig {
             )
         }
 
+        currentRoute.startsWith("market-order-detail") -> {
+            CampusScreenConfig(
+                showBottomNav = false, showHeroBar = false,
+                brand = "订单详情", search = "搜索订单号、商品、卖家消息",
+            )
+        }
+
         currentRoute.startsWith("order-list") -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,

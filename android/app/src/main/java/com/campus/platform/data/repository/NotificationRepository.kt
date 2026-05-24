@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
@@ -62,20 +63,38 @@ class NotificationRepository @Inject constructor(
 
     override suspend fun markAsRead(id: String) {
         val now = Instant.now().toString()
-        supabase.postgrest
-            .from("notifications")
-            .update(mapOf("is_read" to true, "read_at" to now)) { filter { eq("id", id) } }
         userDao.markAsRead(id, now)
+        // Best-effort update on Supabase (may fail if RLS policy is missing)
+        scope.launch {
+            try {
+                supabase.postgrest
+                    .from("notifications")
+                    .update(mapOf("is_read" to true, "read_at" to now)) { filter { eq("id", id) } }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(javaClass.simpleName, "markAsRead Supabase error", e)
+            }
+        }
     }
 
     override suspend fun markAllAsRead(userId: String) {
         val now = Instant.now().toString()
-        supabase.postgrest
-            .from("notifications")
-            .update(mapOf("is_read" to true, "read_at" to now)) {
-                filter { eq("user_id", userId) }
-            }
         userDao.markAllAsRead(userId, now)
+        // Best-effort update on Supabase (may fail if RLS policy is missing)
+        scope.launch {
+            try {
+                supabase.postgrest
+                    .from("notifications")
+                    .update(mapOf("is_read" to true, "read_at" to now)) {
+                        filter { eq("user_id", userId) }
+                    }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(javaClass.simpleName, "markAllAsRead Supabase error", e)
+            }
+        }
     }
 
     override suspend fun deleteNotification(id: String) {
@@ -87,11 +106,30 @@ class NotificationRepository @Inject constructor(
 
     override suspend fun refreshNotifications(userId: String) {
         try {
+            // Snapshot local isRead state BEFORE upserting server data.
+            // The server may lack an UPDATE RLS policy for notifications, so
+            // locally-marked reads can be silently rejected.  If we blindly
+            // upsert server isRead=false on top of local isRead=true, the
+            // unread badge (and read state) flip-flops on every refresh.
+            val localIsReadMap: Map<String, Boolean> =
+                userDao.getNotificationsByUserId(userId)
+                    .first()
+                    .filter { it.isRead }
+                    .associate { it.id to true }
+
             val result = supabase.postgrest
                 .from("notifications")
                 .select { filter { eq("user_id", userId) } }
                 .decodeList<NotificationApiDto>()
-            userDao.upsertAllNotifications(result.map { it.toMapperDto().toEntity() })
+            val remote = result.map { it.toMapperDto() }
+
+            userDao.upsertAllNotifications(
+                remote.map { dto ->
+                    // Preserve locally-marked isRead if the server still reports false
+                    val isRead = localIsReadMap[dto.id] ?: dto.isRead
+                    dto.toEntity().copy(isRead = isRead)
+                }
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

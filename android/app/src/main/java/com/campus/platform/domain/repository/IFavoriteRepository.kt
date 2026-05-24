@@ -15,5 +15,7 @@ interface IFavoriteRepository {
 
     suspend fun isFavorited(userId: String, targetType: String, targetId: String): Boolean
 
+    fun getFavoritesByUserIdAndTypeFlow(userId: String, targetType: String): Flow<List<UserFavoriteDto>>
+
     suspend fun refreshFavorites(userId: String)
 }

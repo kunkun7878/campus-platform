@@ -1,6 +1,6 @@
 # 校园聚合平台 - 项目规则（产品硬规则）
 
-<!-- last_sync: 2026-05-22T14:00 CST -->
+<!-- last_sync: 2026-05-23T23:30 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[campus_decisions]] · [[iteration_current]] · [[codebase_map]]
 

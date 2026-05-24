@@ -1,5 +1,6 @@
 package com.campus.platform.ui.viewmodel.global
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
@@ -54,9 +55,10 @@ class SchoolSelectViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                Log.e("SchoolSelectVM", "加载学校列表失败", e)
                 _state.update {
                     it.copy(
-                        error = e.message ?: "加载学校列表失败",
+                        error = "加载学校列表失败，请检查网络连接",
                         isLoading = false,
                     )
                 }
@@ -95,9 +97,10 @@ class SchoolSelectViewModel @Inject constructor(
                 authRepository.selectSchool(uid, school.id, campus.id)
                 onSuccess()
             } catch (e: Exception) {
+                Log.e("SchoolSelectVM", "选校失败", e)
                 _state.update {
                     it.copy(
-                        error = e.message ?: "选校失败，请重试",
+                        error = "选校失败，请重试",
                         isSubmitting = false,
                     )
                 }

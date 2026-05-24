@@ -1,5 +1,6 @@
 package com.campus.platform.ui.viewmodel.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
@@ -75,7 +76,8 @@ class AccountDeleteViewModel @Inject constructor(
                 authRepository.deleteAccount(finalReason)
                 _uiState.value = AccountDeleteUiState.Success
             } catch (e: Exception) {
-                _formState.update { it.copy(error = e.message ?: "注销失败，请稍后重试") }
+                Log.e("AccountDeleteVM", "注销失败", e)
+                _formState.update { it.copy(error = "注销失败，请稍后重试") }
             } finally {
                 _formState.update { it.copy(isLoading = false) }
             }

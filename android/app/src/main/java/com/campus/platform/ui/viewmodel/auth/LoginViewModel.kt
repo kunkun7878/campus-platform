@@ -1,5 +1,6 @@
 package com.campus.platform.ui.viewmodel.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
@@ -104,7 +105,8 @@ class LoginViewModel @Inject constructor(
                 _formState.update { it.copy(otpSent = true, countdown = 60) }
                 startCountdown()
             } catch (e: Exception) {
-                setError(e.message ?: "发送验证码失败")
+                Log.e("LoginViewModel", "发送验证码失败", e)
+                setError("发送验证码失败，请稍后重试")
             } finally {
                 _formState.update { it.copy(isLoading = false) }
             }
@@ -127,7 +129,8 @@ class LoginViewModel @Inject constructor(
                 authRepository.verifyOtp(state.phone, state.otpCode)
                 _uiState.value = LoginUiState.Success
             } catch (e: Exception) {
-                setError(e.message ?: "验证码错误或已过期")
+                Log.e("LoginViewModel", "验证码登录失败", e)
+                setError("验证码错误或已过期")
             } finally {
                 _formState.update { it.copy(isLoading = false) }
             }
@@ -160,6 +163,7 @@ class LoginViewModel @Inject constructor(
                 _formState.update { it.copy(passwordErrorCount = 0, lockoutSeconds = 0, error = null) }
                 _uiState.value = LoginUiState.Success
             } catch (e: Exception) {
+                Log.e("LoginViewModel", "密码登录失败", e)
                 val newCount = state.passwordErrorCount + 1
                 val msg = when {
                     newCount >= 8 -> {
@@ -168,9 +172,9 @@ class LoginViewModel @Inject constructor(
                         "密码错误次数过多，已锁定60秒，请稍后再试"
                     }
                     newCount >= 5 -> {
-                        "密码错误次数过多，建议使用验证码登录（${e.message ?: "密码错误"}）"
+                        "密码错误次数过多，建议使用验证码登录"
                     }
-                    else -> e.message ?: "登录失败，请检查手机号和密码"
+                    else -> "登录失败，请检查手机号和密码"
                 }
                 _formState.update { it.copy(passwordErrorCount = newCount) }
                 setError(msg)
