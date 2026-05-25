@@ -406,6 +406,146 @@ class CommunityRepository @Inject constructor(
         }
     }
 
+    // ── Agent: pending review ──────────────────────────────────
+
+    override suspend fun getPendingReviewPosts(schoolId: String): List<CommunityPostDto> {
+        return try {
+            val result = supabase.postgrest
+                .from("community_posts")
+                .select {
+                    filter {
+                        eq("school_id", schoolId)
+                        eq("status", "pending_review")
+                    }
+                }
+                .decodeList<CommunityPostApiDto>()
+            result.map { it.toMapperDto() }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "getPendingReviewPosts error", e)
+            emptyList()
+        }
+    }
+
+    override suspend fun getPendingReviewComments(schoolId: String): List<CommunityCommentDto> {
+        return try {
+            val result = supabase.postgrest
+                .from("community_comments")
+                .select {
+                    filter {
+                        eq("school_id", schoolId)
+                        eq("status", "pending_review")
+                    }
+                }
+                .decodeList<CommunityCommentApiDto>()
+            result.map { it.toMapperDto() }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "getPendingReviewComments error", e)
+            emptyList()
+        }
+    }
+
+    // ── Agent: moderation actions ──────────────────────────────
+
+    override suspend fun updatePostStatus(postId: String, status: String, reason: String?) {
+        try {
+            // Use EdgeFn for moderation review to log in moderation_logs
+            val jsonBody = buildJsonObject {
+                put("action", "review")
+                put("target_type", "post")
+                put("target_id", postId)
+                put("status", status)
+                reason?.let { put("reason", it) }
+            }
+            val response = supabase.functions.invoke("community-moderation", body = jsonBody)
+            val bodyText = response.bodyAsText()
+            val moderationResponse = Json.decodeFromString<ModerationResponse>(bodyText)
+            // Update local cache
+            val local = communityDao.getPostById(postId)
+            if (local != null) {
+                communityDao.upsertPost(
+                    local.copy(
+                        status = status,
+                        reviewReason = reason ?: local.reviewReason,
+                    )
+                )
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ClientRequestException) {
+            Log.e(javaClass.simpleName, "EdgeFn updatePostStatus returned ${e.response.status.value}")
+            // Fallback: direct update
+            fallbackUpdatePostStatus(postId, status, reason)
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "EdgeFn updatePostStatus error", e)
+            fallbackUpdatePostStatus(postId, status, reason)
+        }
+    }
+
+    private suspend fun fallbackUpdatePostStatus(postId: String, status: String, reason: String?) {
+        val updates = mutableMapOf<String, Any?>("status" to status)
+        reason?.let { updates["review_reason"] = it }
+        supabase.postgrest
+            .from("community_posts")
+            .update(updates) {
+                filter { eq("id", postId) }
+            }
+        val local = communityDao.getPostById(postId)
+        if (local != null) {
+            communityDao.upsertPost(local.copy(status = status, reviewReason = reason ?: local.reviewReason))
+        }
+    }
+
+    override suspend fun updateCommentStatus(commentId: String, status: String, reason: String?) {
+        try {
+            val jsonBody = buildJsonObject {
+                put("action", "review")
+                put("target_type", "comment")
+                put("target_id", commentId)
+                put("status", status)
+                reason?.let { put("reason", it) }
+            }
+            val response = supabase.functions.invoke("community-moderation", body = jsonBody)
+            val bodyText = response.bodyAsText()
+            val moderationResponse = Json.decodeFromString<ModerationResponse>(bodyText)
+            // Update local cache
+            val local = communityDao.getCommentById(commentId)
+            if (local != null) {
+                communityDao.upsertComment(
+                    local.copy(
+                        status = status,
+                        reviewReason = reason ?: local.reviewReason,
+                    )
+                )
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ClientRequestException) {
+            Log.e(javaClass.simpleName, "EdgeFn updateCommentStatus returned ${e.response.status.value}")
+            fallbackUpdateCommentStatus(commentId, status, reason)
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "EdgeFn updateCommentStatus error", e)
+            fallbackUpdateCommentStatus(commentId, status, reason)
+        }
+    }
+
+    private suspend fun fallbackUpdateCommentStatus(commentId: String, status: String, reason: String?) {
+        val updates = mutableMapOf<String, Any?>("status" to status)
+        reason?.let { updates["review_reason"] = it }
+        supabase.postgrest
+            .from("community_comments")
+            .update(updates) {
+                filter { eq("id", commentId) }
+            }
+        val local = communityDao.getCommentById(commentId)
+        if (local != null) {
+            communityDao.upsertComment(local.copy(status = status, reviewReason = reason ?: local.reviewReason))
+        }
+    }
+
     // ── Refresh ────────────────────────────────────────────────
 
     override suspend fun refreshPosts(schoolId: String) {

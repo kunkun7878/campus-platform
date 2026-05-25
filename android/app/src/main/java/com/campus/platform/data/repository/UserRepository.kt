@@ -2,6 +2,7 @@ package com.campus.platform.data.repository
 
 import com.campus.platform.data.local.dao.UserDao
 import com.campus.platform.data.local.mapper.WalletDto
+import com.campus.platform.data.local.mapper.WalletTransactionDto
 import com.campus.platform.data.local.mapper.toDto
 import com.campus.platform.data.local.mapper.toEntity
 import com.campus.platform.data.model.Profile
@@ -86,6 +87,12 @@ class UserRepository @Inject constructor(
             throw e
         } catch (e: Exception) {
             Log.e(javaClass.simpleName, "Refresh error", e)
+        }
+    }
+
+    override fun getWalletTransactions(userId: String, limit: Int): Flow<List<WalletTransactionDto>> {
+        return userDao.getWalletTransactionsByUserId(userId, limit).map { entities ->
+            entities.map { it.toDto() }
         }
     }
 }

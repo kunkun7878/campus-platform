@@ -58,6 +58,27 @@ data class UserAddressEntity(
     val updatedAt: String? = null,
 )
 
+@Entity(tableName = "wallet_transactions")
+data class WalletTransactionEntity(
+    @PrimaryKey val id: String,
+    val userId: String,
+    val type: String,
+    val amount: Int,
+    val balanceAfter: Int,
+    val description: String? = null,
+    val refType: String? = null,
+    val refId: String? = null,
+    val createdAt: String? = null,
+) {
+    companion object {
+        const val TYPE_RECHARGE = "recharge"
+        const val TYPE_WITHDRAW = "withdraw"
+        const val TYPE_PAYMENT = "payment"
+        const val TYPE_REFUND = "refund"
+        const val TYPE_INCOME = "income"
+    }
+}
+
 @Entity(tableName = "user_favorites")
 data class UserFavoriteEntity(
     @PrimaryKey val id: String,
@@ -86,6 +107,9 @@ data class NotificationEntity(
     val isRead: Boolean = false,
     val readAt: String? = null,
     val createdAt: String? = null,
+    val priority: String = "normal",
+    val pushSent: Boolean = false,
+    val pushSentAt: String? = null,
 ) {
     companion object {
         const val TYPE_ORDER_STATUS = "order_status"
@@ -93,5 +117,36 @@ data class NotificationEntity(
         const val TYPE_SYSTEM = "system"
         const val TYPE_CHAT = "chat"
         const val TYPE_AFTER_SALE = "after_sale"
+        const val TYPE_LOST_FOUND = "lost_found"
+        const val TYPE_COMMUNITY = "community"
+        const val TYPE_GROUP_CHAT = "group_chat"
+    }
+}
+
+@Entity(tableName = "invite_codes")
+data class InviteCodeEntity(
+    @PrimaryKey val id: String,
+    val userId: String,
+    val code: String,
+    val isActive: Boolean = true,
+    val totalInvites: Int = 0,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+)
+
+@Entity(tableName = "invite_records")
+data class InviteRecordEntity(
+    @PrimaryKey val id: String,
+    val inviterId: String,
+    val inviteeId: String,
+    val inviteCodeId: String,
+    val rewardStatus: String = REWARD_STATUS_PENDING,
+    val rewardAmount: Int = 0,
+    val createdAt: String? = null,
+) {
+    companion object {
+        const val REWARD_STATUS_PENDING = "pending"
+        const val REWARD_STATUS_GRANTED = "granted"
+        const val REWARD_STATUS_EXPIRED = "expired"
     }
 }

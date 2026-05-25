@@ -52,6 +52,96 @@ class GoodsDetailViewModel @Inject constructor(
 
     private var currentListingId: String? = null
 
+    // ── 编辑状态 ──────────────────────────────────────────────
+
+    private val _isEditing = MutableStateFlow(false)
+    val isEditing: StateFlow<Boolean> = _isEditing.asStateFlow()
+
+    private val _editTitle = MutableStateFlow("")
+    val editTitle: StateFlow<String> = _editTitle.asStateFlow()
+
+    private val _editDescription = MutableStateFlow("")
+    val editDescription: StateFlow<String> = _editDescription.asStateFlow()
+
+    private val _editPrice = MutableStateFlow("")
+    val editPrice: StateFlow<String> = _editPrice.asStateFlow()
+
+    private val _isSaving = MutableStateFlow(false)
+    val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
+
+    private val _saveMessage = MutableStateFlow<String?>(null)
+    val saveMessage: StateFlow<String?> = _saveMessage.asStateFlow()
+
+    // ── 编辑操作 ──────────────────────────────────────────────
+
+    fun startEditing() {
+        val listing = (_uiState.value as? UiState.Success)?.data ?: return
+        _editTitle.value = listing.title
+        _editDescription.value = listing.description ?: ""
+        _editPrice.value = listing.price.toString()
+        _isEditing.value = true
+    }
+
+    fun cancelEditing() {
+        _isEditing.value = false
+    }
+
+    fun onEditTitleChange(value: String) {
+        _editTitle.value = value
+    }
+
+    fun onEditDescriptionChange(value: String) {
+        _editDescription.value = value
+    }
+
+    fun onEditPriceChange(value: String) {
+        _editPrice.value = value.filter { it.isDigit() }
+    }
+
+    fun saveEdits() {
+        val listingId = currentListingId ?: return
+        val title = _editTitle.value.trim()
+        val description = _editDescription.value.trim()
+        val priceStr = _editPrice.value
+
+        if (title.isBlank()) {
+            _saveMessage.value = "标题不能为空"
+            return
+        }
+        val price = priceStr.toIntOrNull()
+        if (price == null || price <= 0) {
+            _saveMessage.value = "请输入有效的价格"
+            return
+        }
+
+        viewModelScope.launch {
+            _isSaving.value = true
+            try {
+                val updates = mutableMapOf<String, Any?>(
+                    "title" to title,
+                    "price" to price,
+                )
+                if (description.isNotBlank()) {
+                    updates["description"] = description
+                }
+                marketRepository.updateListing(listingId, updates)
+                _isEditing.value = false
+                _saveMessage.value = "保存成功"
+                // Refresh listing
+                loadListing(listingId)
+            } catch (e: Exception) {
+                Log.e(TAG, "保存编辑失败", e)
+                _saveMessage.value = "保存失败，请稍后重试"
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
+    fun clearSaveMessage() {
+        _saveMessage.value = null
+    }
+
     // ── 数据加载 ──────────────────────────────────────────────
 
     /**

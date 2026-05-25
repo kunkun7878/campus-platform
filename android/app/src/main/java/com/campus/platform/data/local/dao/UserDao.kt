@@ -5,6 +5,9 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.campus.platform.data.local.entity.ProfileEntity
 import com.campus.platform.data.local.entity.WalletEntity
+import com.campus.platform.data.local.entity.InviteCodeEntity
+import com.campus.platform.data.local.entity.InviteRecordEntity
+import com.campus.platform.data.local.entity.WalletTransactionEntity
 import com.campus.platform.data.local.entity.UserAddressEntity
 import com.campus.platform.data.local.entity.UserFavoriteEntity
 import com.campus.platform.data.local.entity.NotificationEntity
@@ -37,6 +40,20 @@ interface UserDao {
 
     @Query("DELETE FROM wallets")
     suspend fun deleteAllWallets()
+
+    // ── WalletTransaction ────────────────────────────────────
+
+    @Upsert
+    suspend fun upsertWalletTransaction(tx: WalletTransactionEntity)
+
+    @Upsert
+    suspend fun upsertAllWalletTransactions(txs: List<WalletTransactionEntity>)
+
+    @Query("SELECT * FROM wallet_transactions WHERE userId = :userId ORDER BY createdAt DESC LIMIT :limit")
+    fun getWalletTransactionsByUserId(userId: String, limit: Int = 50): Flow<List<WalletTransactionEntity>>
+
+    @Query("DELETE FROM wallet_transactions")
+    suspend fun deleteAllWalletTransactions()
 
     // ── UserAddress ──────────────────────────────────────────
 
@@ -112,4 +129,38 @@ interface UserDao {
 
     @Query("DELETE FROM notifications")
     suspend fun deleteAllNotifications()
+
+    // ── InviteCode ───────────────────────────────────────────────
+
+    @Upsert
+    suspend fun upsertInviteCode(code: InviteCodeEntity)
+
+    @Upsert
+    suspend fun upsertAllInviteCodes(codes: List<InviteCodeEntity>)
+
+    @Query("SELECT * FROM invite_codes WHERE userId = :userId")
+    fun getInviteCodeByUserId(userId: String): Flow<InviteCodeEntity?>
+
+    @Query("SELECT * FROM invite_codes WHERE code = :code")
+    suspend fun getInviteCodeByCode(code: String): InviteCodeEntity?
+
+    @Query("DELETE FROM invite_codes")
+    suspend fun deleteAllInviteCodes()
+
+    // ── InviteRecord ─────────────────────────────────────────────
+
+    @Upsert
+    suspend fun upsertInviteRecord(record: InviteRecordEntity)
+
+    @Upsert
+    suspend fun upsertAllInviteRecords(records: List<InviteRecordEntity>)
+
+    @Query("SELECT * FROM invite_records WHERE inviterId = :userId ORDER BY createdAt DESC")
+    fun getInviteRecordsByInviterId(userId: String): Flow<List<InviteRecordEntity>>
+
+    @Query("SELECT COUNT(*) FROM invite_records WHERE inviterId = :userId")
+    fun getInviteCountByInviterId(userId: String): Flow<Int>
+
+    @Query("DELETE FROM invite_records")
+    suspend fun deleteAllInviteRecords()
 }

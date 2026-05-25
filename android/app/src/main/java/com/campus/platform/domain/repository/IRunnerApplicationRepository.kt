@@ -10,4 +10,12 @@ interface IRunnerApplicationRepository {
     suspend fun submitApplication(application: RunnerApplicationDto)
 
     suspend fun getApplicationStatus(userId: String, schoolId: String): String?
+
+    // ── Agent: review ───────────────────────────────────────────
+
+    suspend fun getPendingApplications(schoolId: String): List<RunnerApplicationDto>
+
+    suspend fun approveApplication(applicationId: String, reviewedBy: String, comment: String? = null)
+
+    suspend fun rejectApplication(applicationId: String, reviewedBy: String, reason: String)
 }

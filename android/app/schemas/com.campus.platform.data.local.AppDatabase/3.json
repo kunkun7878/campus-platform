@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "d1ec33c5dab4de2acc4187c6aae14b39",
+    "identityHash": "cf9fb63764e6da80abce151bd194f1fd",
     "entities": [
       {
         "tableName": "schools",
@@ -342,7 +342,7 @@
       },
       {
         "tableName": "notifications",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT, `refType` TEXT, `refId` TEXT, `isRead` INTEGER NOT NULL, `readAt` TEXT, `createdAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT, `refType` TEXT, `refId` TEXT, `isRead` INTEGER NOT NULL, `readAt` TEXT, `createdAt` TEXT, `priority` TEXT NOT NULL, `pushSent` INTEGER NOT NULL, `pushSentAt` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -397,6 +397,23 @@
           {
             "fieldPath": "createdAt",
             "columnName": "createdAt",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pushSent",
+            "columnName": "pushSent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pushSentAt",
+            "columnName": "pushSentAt",
             "affinity": "TEXT"
           }
         ],
@@ -733,7 +750,7 @@
       },
       {
         "tableName": "after_sale_timeline",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `afterSaleId` TEXT NOT NULL, `event` TEXT NOT NULL, `description` TEXT, `operatorId` TEXT, `schoolId` TEXT NOT NULL, `createdAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `afterSaleId` TEXT NOT NULL, `event` TEXT NOT NULL, `description` TEXT, `operatorId` TEXT, `schoolId` TEXT NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -773,6 +790,11 @@
             "fieldPath": "createdAt",
             "columnName": "createdAt",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -784,7 +806,7 @@
       },
       {
         "tableName": "order_timeline",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `orderId` TEXT NOT NULL, `event` TEXT NOT NULL, `description` TEXT, `operatorId` TEXT, `schoolId` TEXT NOT NULL, `createdAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `orderId` TEXT NOT NULL, `event` TEXT NOT NULL, `description` TEXT, `operatorId` TEXT, `schoolId` TEXT NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -823,6 +845,11 @@
           {
             "fieldPath": "createdAt",
             "columnName": "createdAt",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
             "affinity": "TEXT"
           }
         ],
@@ -1100,7 +1127,7 @@
       },
       {
         "tableName": "community_posts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `authorId` TEXT NOT NULL, `section` TEXT NOT NULL, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `images` TEXT NOT NULL, `likeCount` INTEGER NOT NULL, `commentCount` INTEGER NOT NULL, `isPinned` INTEGER NOT NULL, `status` TEXT NOT NULL, `schoolId` TEXT NOT NULL, `viewCount` INTEGER NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `authorId` TEXT NOT NULL, `section` TEXT NOT NULL, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `images` TEXT NOT NULL, `likeCount` INTEGER NOT NULL, `commentCount` INTEGER NOT NULL, `isPinned` INTEGER NOT NULL, `status` TEXT NOT NULL, `schoolId` TEXT NOT NULL, `viewCount` INTEGER NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, `reviewReason` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -1183,6 +1210,11 @@
             "fieldPath": "updatedAt",
             "columnName": "updatedAt",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reviewReason",
+            "columnName": "reviewReason",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -1194,7 +1226,7 @@
       },
       {
         "tableName": "community_comments",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `postId` TEXT NOT NULL, `authorId` TEXT NOT NULL, `parentId` TEXT, `content` TEXT NOT NULL, `likeCount` INTEGER NOT NULL, `status` TEXT NOT NULL, `schoolId` TEXT NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `postId` TEXT NOT NULL, `authorId` TEXT NOT NULL, `parentId` TEXT, `content` TEXT NOT NULL, `likeCount` INTEGER NOT NULL, `status` TEXT NOT NULL, `schoolId` TEXT NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, `reviewReason` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -1251,6 +1283,11 @@
           {
             "fieldPath": "updatedAt",
             "columnName": "updatedAt",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reviewReason",
+            "columnName": "reviewReason",
             "affinity": "TEXT"
           }
         ],
@@ -1422,7 +1459,7 @@
       },
       {
         "tableName": "lost_found_items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `publisherId` TEXT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT, `images` TEXT NOT NULL, `location` TEXT, `lostDate` TEXT, `category` TEXT NOT NULL, `status` TEXT NOT NULL, `schoolId` TEXT NOT NULL, `reward` INTEGER NOT NULL, `contact` TEXT NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `publisherId` TEXT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT, `images` TEXT NOT NULL, `location` TEXT, `lostDate` TEXT, `category` TEXT NOT NULL, `status` TEXT NOT NULL, `schoolId` TEXT NOT NULL, `reward` INTEGER NOT NULL, `contact` TEXT NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, `returnedAt` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -1508,6 +1545,11 @@
             "fieldPath": "updatedAt",
             "columnName": "updatedAt",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "returnedAt",
+            "columnName": "returnedAt",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -1581,7 +1623,7 @@
       },
       {
         "tableName": "conversations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `user1Id` TEXT NOT NULL, `user2Id` TEXT NOT NULL, `lastMessage` TEXT, `lastMessageAt` TEXT, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `user1Id` TEXT NOT NULL, `user2Id` TEXT NOT NULL, `lastMessage` TEXT, `lastMessageAt` TEXT, `createdAt` TEXT, `updatedAt` TEXT, `sourceType` TEXT, `sourceId` TEXT, `lastMessageSenderId` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -1619,6 +1661,21 @@
           {
             "fieldPath": "updatedAt",
             "columnName": "updatedAt",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceType",
+            "columnName": "sourceType",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "sourceId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastMessageSenderId",
+            "columnName": "lastMessageSenderId",
             "affinity": "TEXT"
           }
         ],
@@ -1956,7 +2013,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd1ec33c5dab4de2acc4187c6aae14b39')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cf9fb63764e6da80abce151bd194f1fd')"
     ]
   }
 }

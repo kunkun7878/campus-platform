@@ -1,0 +1,17 @@
+name: Reward Expiry Cron
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # UTC 3:00 daily
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  trigger-reward-expiry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invoke reward-expiry Edge Function
+        run: |
+          curl -sS -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/reward-expiry" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json"

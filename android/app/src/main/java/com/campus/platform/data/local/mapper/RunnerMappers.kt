@@ -265,6 +265,7 @@ data class OrderTimelineDto(
     val operatorId: String?,
     val schoolId: String,
     val createdAt: String?,
+    val updatedAt: String? = null,
 )
 
 fun OrderTimelineEntity.toDto(): OrderTimelineDto = OrderTimelineDto(
@@ -275,6 +276,7 @@ fun OrderTimelineEntity.toDto(): OrderTimelineDto = OrderTimelineDto(
     operatorId = operatorId,
     schoolId = schoolId,
     createdAt = createdAt,
+    updatedAt = updatedAt,
 )
 
 fun OrderTimelineDto.toEntity(): OrderTimelineEntity = OrderTimelineEntity(
@@ -285,6 +287,7 @@ fun OrderTimelineDto.toEntity(): OrderTimelineEntity = OrderTimelineEntity(
     operatorId = operatorId,
     schoolId = schoolId,
     createdAt = createdAt,
+    updatedAt = updatedAt,
 )
 
 // ── AfterSaleTimeline DTO ──────────────────────────────────
@@ -297,6 +300,7 @@ data class AfterSaleTimelineDto(
     val operatorId: String?,
     val schoolId: String,
     val createdAt: String?,
+    val updatedAt: String? = null,
 )
 
 fun AfterSaleTimelineEntity.toDto(): AfterSaleTimelineDto = AfterSaleTimelineDto(
@@ -307,6 +311,7 @@ fun AfterSaleTimelineEntity.toDto(): AfterSaleTimelineDto = AfterSaleTimelineDto
     operatorId = operatorId,
     schoolId = schoolId,
     createdAt = createdAt,
+    updatedAt = updatedAt,
 )
 
 fun AfterSaleTimelineDto.toEntity(): AfterSaleTimelineEntity = AfterSaleTimelineEntity(
@@ -317,4 +322,5 @@ fun AfterSaleTimelineDto.toEntity(): AfterSaleTimelineEntity = AfterSaleTimeline
     operatorId = operatorId,
     schoolId = schoolId,
     createdAt = createdAt,
+    updatedAt = updatedAt,
 )

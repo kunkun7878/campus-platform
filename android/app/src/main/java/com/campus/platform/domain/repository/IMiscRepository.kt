@@ -12,7 +12,13 @@ interface IMiscRepository {
 
     fun getAnnouncements(schoolId: String): Flow<List<AnnouncementDto>>
 
+    suspend fun getAnnouncementById(id: String): AnnouncementDto?
+
     suspend fun refreshAnnouncements(schoolId: String)
+
+    suspend fun upsertAnnouncement(announcement: AnnouncementDto)
+
+    suspend fun deleteAnnouncement(announcementId: String)
 
     // ── Coupons ────────────────────────────────────────────────
 

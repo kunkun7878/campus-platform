@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.campus.platform.navigation.CampusRoutes
+import com.campus.platform.ui.component.MultiImagePicker
 import com.campus.platform.ui.viewmodel.runner.AfterSaleApplyUiState
 import com.campus.platform.ui.viewmodel.runner.AfterSaleApplyViewModel
 import com.campus.platform.ui.viewmodel.runner.OrderSummary
@@ -175,32 +176,13 @@ fun AfterSaleApplyScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            // ── 4. 图片上传占位 ──────────────────────────
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = "图片上传功能即将上线",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "审核人员将根据您描述的原因进行判断",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    )
-                }
-            }
+            // ── 4. 图片上传 ──────────────────────────────
+            MultiImagePicker(
+                selectedUris = formState.selectedUris,
+                onAddImages = { viewModel.onAddImages(it) },
+                onRemoveImage = { viewModel.onRemoveImage(it) },
+                maxCount = 6,
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 

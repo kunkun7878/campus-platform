@@ -1,6 +1,6 @@
 # 校园聚合平台 - 会话推进日志
 
-<!-- last_sync: 2026-05-24T16:00 CST -->
+<!-- last_sync: 2026-05-24T22:00 CST -->
 
 > 关联：[[PROJECT_HOME]] · [[campus_status]] · [[iteration_current]]
 
@@ -26,7 +26,103 @@
 - 用户完成 Firebase 前置操作：项目 campus-platform 已创建 + google-services.json 已放入 android/app/ + 服务帐号私钥已下载
 - 下一步：派发任务包 → 派生执行Agent
 
+## 2026-05-25
+
+### 23:00 — Phase 7 全部完成 ✅：47 子任务闭环，MVP 代码就绪
+
+### 23:30 — 终审 + 6 阻断修复 + 复审闭环
+
+- 三线审查Agent（代码完整性/功能链路/Supabase后端）并行运行
+- 发现：1 致命（OrderList 缺 navArgument）+ 6 阻断（EdgeFn 安全/原子性/幂等性）+ 11 重要 + 11 轻微
+- P7-001 OrderList navArgument + P7-002 LoginScreen 硬编码 → ✅ 已修复
+- B1-B6 EdgeFn 阻断全部修复：
+  - B1：lost-item-lifecycle 新增 submit_claim action
+  - B2：invite-code reward_amount 从DB读取防伪造
+  - B3：invite-code 先INSERT再UPDATE乐观锁
+  - B4：reward-expiry 三层幂等性防护（advisory lock + 原子关闭 + 先关后退）
+  - B5：invite-code 防自邀请校验
+  - B6：lost-item-lifecycle 先插物品再扣款消除竞态
+- 复审 Agent：6/6 阻断修复全部通过
+- 最终编译：BUILD SUCCESSFUL
+- G2 记忆同步：campus_status.md 更新至 Phase 7 完成状态
+
+### 23:00 — Phase 7 全部完成 ✅：47 子任务闭环，MVP 代码就绪
+
+- **Batch 1（16 任务）**：
+  - E1-E6：Migration 17 Room Entity 同步（5 组 10 文件，14+ 字段补全）+ AppDatabase v3→v6
+  - B-R：8 条 Agent 路由 + 5 处 ScreenConfig contains→startsWith + 1 处硬编码消除
+  - D1：售后 EdgeFn 缺 action 修复（1 行 put("action","create")）
+  - D2：市场订单原子化（try-catch+回滚，EdgeFn 升级标注后续）
+  - D3：OTP 验证反射绕过（SDK 3.1.2 Kotlin-Java 互操作 workaround）
+  - B0：ProfileScreen 重构 + popUpTo(0)→("splash") 修复（审查Agent 打回→修复闭环）
+- **Batch 2（25 任务）**：
+  - A1-A7：7 占位屏（Wallet/Address/Coupons/Invite/Feedback/About/AnnounceDetail）+ 数据层补全
+  - B1-B8：Agent 后台 16 新文件（8 Screen + 8 ViewModel）+ 9 文件修改
+  - C1-C10：遗漏补全（PublishHub/图片上传/密码重置/MyPublished/MyFavorites/GoodsDetail编辑/AfterSale补充/协议页）
+- **Batch 3（4 任务）**：
+  - F2：lost-item-lifecycle 3 处 wallet_transactions INSERT
+  - F3：reward-expiry EdgeFn + Migration 19 + GitHub Actions cron
+  - F4：invite-code EdgeFn（generate/verify action）
+  - F5：favoriteCount Migration 20 + trigger + Android Entity/Dto/Mapper 同步
+- **Batch 4（2 任务）**：
+  - G1：18 条全链路验证（17 ✅ / 1 ⚠️ 首页公告入口缺，低优先级）
+  - G2：project_memory 全量同步（campus_status/session_log 更新至 Phase 7 完成）
+
+- 编译验证：BUILD SUCCESSFUL（多轮编译修复：E5 Dto 缺默认值→Repository 调用断裂→favoriteCount Dto/ApiDto 字段顺序不同→修复）
+- 最终统计：45 Screen/45 ViewModel/22+23 Repository/29 Entity/9 EdgeFn/20 Migration/221 Kotlin 文件
+- 用户待部署：Migration 19-20 + 3 EdgeFn（lost-item-lifecycle update/reward-expiry new/invite-code new）
+
+### 20:00 — Phase 7 前置条件全部就绪：线上环境部署闭环
+
+- P0 部署状态全面核查（通过 CLI + API + Dashboard）：
+  - ✅ 18 Migration 全部执行，38 张表 HTTP 200
+  - ✅ 6 EdgeFn 全部 ACTIVE（runner-order-lifecycle / runner-after-sale / market-purchase / lost-item-lifecycle / community-moderation / push-notification）
+  - ✅ 4 个 Storage Bucket 就位（avatars / community-images / chat-images / lost-found-images）
+  - ✅ 20 条 Storage RLS 策略创建完成（4 Bucket × 5 条 = SELECT school + INSERT school + SELECT Agent + UPDATE owner/agent + DELETE owner/agent）
+  - ✅ env var 全部配置（FIREBASE_SERVICE_ACCOUNT / ALIYUN_ACCESS_KEY_ID / ALIYUN_ACCESS_KEY_SECRET）
+  - ✅ Phone Auth 已启用（Twilio占位 + 测试手机号=123456）
+  - ✅ Supabase CLI 登录+链接（2.101.0，npm global）
+  - ✅ google-services.json 存在
+  - ✅ 种子数据（2 校 4 校区）经 SQL Editor 确认
+  - ✅ Android 编译 BUILD SUCCESSFUL
+- 已知小问题：4 条 UPDATE 策略缺 WITH CHECK → 已修复 ✅（编辑补全 WITH CHECK 表达式，经 CLI 验证）
+- PHASE7-PLAN-003 已修正（10 项分析偏差合并，P0-3 7→6 EdgeFn、隐性依赖标注、cloudModerate 明确边界、G1 追加 3 条验证路径 等）
+
+### 19:00 — Phase 7 任务三线代码验证完成
+
+- 派生 3 个执行Agent 并行分析 Phase 7 47 子任务（P0/D/E + A/C + B/F/G）
+- 结果：37 准确 / 10 有偏差 / 1 硬错误（P0-3 _shared 不是可部署EdgeFn） / 0 关键遗漏
+- 计划文档 10 项修正已写入 PHASE7-PLAN-003-任务详单-终版.md
+
+### 18:00 — Phase 7 前置分析：7 项用户操作清单确认
+
+- 逐项排查 Supabase 部署/PhoneAuth/CLI/Firebase/AliCloud/编译/手机环境
+- 发现：Phone Auth 未启用（phone: false）、SMS 还是 Twilio、supabase login 未做
+- 生成完整前置清单
+
 ## 2026-05-24
+
+### 22:00 — Phase 7 规划完成：3轮5Agent审查 + 47子任务详单
+
+- 第一轮审查（1 Agent）：发现10致命+11重要（Agent路由/Entity pending_review/EdgeFn review/favoriteCount/MyPublished假数据/GoodsDetail编辑/AfterSale补充/Profile菜单/协议页/权限校验）
+- 第二轮深挖（3 Agent并行）：数据层(Migration 17 Room未同步5文件14+字段)+导航(8Screen不可达)+流程(3运行时Bug)
+- 第三轮终审（1 Agent）：环境变量命名冲突(FCM vs FIREBASE)+B3/F1文件冲突+编译依赖标注
+- 累计发现：15致命+23重要+3轻微=41项
+- 产出：PHASE7-PLAN-003(终版 47子任务 7模块 4批次) + UI素材需求.md(桌面 ~80项)
+- 归档：archive/outputs/PHASE7-PLAN-001~003 + 4份审查报告
+- 任务详单：P0(Supabase部署6)+D(Bug修复3)+E(Room同步6)+A(占位屏7)+B(Agent10)+C(遗漏补全10)+F(EdgeFn3)+G(验证2)
+- 4批次：P0→Batch1(地基 E→B-R→D→B0)→Batch2(主体UI A+B+C)→Batch3(后端F)→Batch4(验证G)
+- 确认决策：Agent后台Android内嵌P0+P1/云AI阿里云Phase 7接入/钱包仅展示/InviteScreen Phase 7实现/悬赏金补全冻结+过期/AnnouncementDetail实现/天气+支付+UI素材延后
+
+### 20:00 — Phase 1-6 审计修复提交
+
+- 7项修复通过审查：F1(CLAUDE.md Phase2→6)+F2(codebase_map全面更新)+F3(决策#79跳号)+F4(Migration16 revert)+F5(Migration18→17)+F6(36→38表)+F7(ImageUpload接口)
+- 14文件变更 +93/-47行，编译BUILD SUCCESSFUL，commit c4626f2→push master成功
+
+### 18:00 — Phase 1-6 全面审计
+
+- 3 Agent并行：Android代码库(200kt文件)+Supabase基础设施(18Migration/6EdgeFn/38表)+文档一致性(14文件)
+- 结论：代码完整(38Screen/39ViewModel/100%RLS)，文档滞后(CLAUDE.md停留Phase2/codebase_map过期)
 
 ### 16:00 - Phase 6 全部完成：11 任务包 + 4 轮审计修复闭环 ✅
 

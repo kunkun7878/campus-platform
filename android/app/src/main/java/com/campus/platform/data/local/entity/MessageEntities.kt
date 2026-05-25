@@ -12,6 +12,9 @@ data class ConversationEntity(
     val lastMessageAt: String? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null,
+    val sourceType: String? = null,
+    val sourceId: String? = null,
+    val lastMessageSenderId: String? = null,
 )
 
 @Entity(tableName = "messages")

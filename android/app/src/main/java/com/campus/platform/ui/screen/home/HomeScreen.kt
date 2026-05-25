@@ -675,7 +675,6 @@ private fun MarketListingDto.toHomeMarketFeedItem(
     category = category,
     time = HomeViewModel.formatTime(createdAt),
     status = MarketUiMapper.statusDisplay(status),
-    // TODO Phase 7: favoriteCount 需要后端添加 favorite_count 字段 + trigger，当前暂为 0
-    favoriteCount = 0,
+    favoriteCount = favoriteCount,
     isFavorite = id in favoriteIds,
 )

@@ -5,8 +5,10 @@ import com.campus.platform.data.local.mapper.RunnerApplicationDto
 import com.campus.platform.data.local.mapper.toDto
 import com.campus.platform.data.local.mapper.toEntity
 import com.campus.platform.domain.repository.IRunnerApplicationRepository
+import android.util.Log
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import javax.inject.Inject
@@ -63,5 +65,63 @@ class RunnerApplicationRepository @Inject constructor(
 
     override suspend fun getApplicationStatus(userId: String, schoolId: String): String? {
         return runnerDao.getMyApplication(userId, schoolId)?.status
+    }
+
+    // ── Agent: review ───────────────────────────────────────────
+
+    override suspend fun getPendingApplications(schoolId: String): List<RunnerApplicationDto> {
+        return try {
+            val result = supabase.postgrest
+                .from("runner_applications")
+                .select {
+                    filter {
+                        eq("school_id", schoolId)
+                        eq("status", "pending")
+                    }
+                }
+                .decodeList<RunnerApplicationApiDto>()
+            result.map { it.toMapperDto() }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "getPendingApplications error", e)
+            emptyList()
+        }
+    }
+
+    override suspend fun approveApplication(applicationId: String, reviewedBy: String, comment: String?) {
+        val now = java.time.Instant.now().toString()
+        val updates = mutableMapOf<String, Any?>(
+            "status" to "approved",
+            "reviewed_by" to reviewedBy,
+            "reviewed_at" to now,
+        )
+        comment?.let { updates["review_comment"] = it }
+        val result = supabase.postgrest
+            .from("runner_applications")
+            .update(updates) {
+                filter { eq("id", applicationId) }
+                select()
+            }
+            .decodeSingle<RunnerApplicationApiDto>()
+        runnerDao.upsertApplication(result.toMapperDto().toEntity())
+    }
+
+    override suspend fun rejectApplication(applicationId: String, reviewedBy: String, reason: String) {
+        val now = java.time.Instant.now().toString()
+        val updates = mapOf<String, Any?>(
+            "status" to "rejected",
+            "reviewed_by" to reviewedBy,
+            "reviewed_at" to now,
+            "review_comment" to reason,
+        )
+        val result = supabase.postgrest
+            .from("runner_applications")
+            .update(updates) {
+                filter { eq("id", applicationId) }
+                select()
+            }
+            .decodeSingle<RunnerApplicationApiDto>()
+        runnerDao.upsertApplication(result.toMapperDto().toEntity())
     }
 }

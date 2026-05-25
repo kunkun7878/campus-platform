@@ -14,6 +14,8 @@ data class AnnouncementDto(
     val schoolId: String?,
     val publishedBy: String,
     val isPinned: Boolean,
+    val priority: String = "normal",
+    val status: String = "published",
     val createdAt: String?,
     val updatedAt: String?,
 )
@@ -25,6 +27,8 @@ fun AnnouncementEntity.toDto(): AnnouncementDto = AnnouncementDto(
     schoolId = schoolId,
     publishedBy = publishedBy,
     isPinned = isPinned,
+    priority = priority,
+    status = status,
     createdAt = createdAt,
     updatedAt = updatedAt,
 )
@@ -36,6 +40,8 @@ fun AnnouncementDto.toEntity(): AnnouncementEntity = AnnouncementEntity(
     schoolId = schoolId,
     publishedBy = publishedBy,
     isPinned = isPinned,
+    priority = priority,
+    status = status,
     createdAt = createdAt,
     updatedAt = updatedAt,
 )

@@ -1,10 +1,12 @@
 package com.campus.platform.ui.viewmodel.profile
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
 import com.campus.platform.data.local.mapper.RunnerApplicationDto
+import com.campus.platform.domain.repository.IImageUploadRepository
 import com.campus.platform.domain.repository.IRunnerApplicationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,9 @@ data class RunnerApplyFormState(
     val reason: String = "",
     val idCardFrontUrl: String = "",
     val idCardBackUrl: String = "",
+    val idCardFrontUri: Uri? = null,
+    val idCardBackUri: Uri? = null,
+    val isUploadingIdCard: Boolean = false,
     val error: String? = null,
 )
 
@@ -58,6 +63,7 @@ private const val TAG = "RunnerApplyVM"
 class RunnerApplyViewModel @Inject constructor(
     private val repository: IRunnerApplicationRepository,
     private val authRepository: AuthRepository,
+    private val imageUploadRepository: IImageUploadRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RunnerApplyUiState>(RunnerApplyUiState.Loading)
@@ -94,6 +100,24 @@ class RunnerApplyViewModel @Inject constructor(
 
     fun onIdCardBackUrlChange(value: String) {
         updateForm { it.copy(idCardBackUrl = value, error = null) }
+    }
+
+    fun onIdCardFrontSelected(uri: Uri?) {
+        updateForm { it.copy(idCardFrontUri = uri, error = null) }
+    }
+
+    fun onIdCardBackSelected(uri: Uri?) {
+        updateForm { it.copy(idCardBackUri = uri, error = null) }
+    }
+
+    /** Upload an ID card image and return its URL */
+    private suspend fun uploadIdCard(uri: Uri, side: String): String {
+        val userId = currentUserId.ifEmpty { authRepository.currentUserId() ?: "unknown" }
+        return imageUploadRepository.uploadImage(
+            uri = uri,
+            bucket = "chat-images", // id-cards bucket not yet created, fallback to chat-images
+            resourceId = "id_card_${userId}_${side}",
+        )
     }
 
     /** 从 rejected 状态触发重新申请，切换回表单模式 */
@@ -149,6 +173,19 @@ class RunnerApplyViewModel @Inject constructor(
             // 标记提交中
             setSubmitting(true)
             try {
+                // Upload ID card images if selected
+                var frontUrl = form.idCardFrontUrl
+                var backUrl = form.idCardBackUrl
+                if (form.idCardFrontUri != null || form.idCardBackUri != null) {
+                    updateForm { it.copy(isUploadingIdCard = true) }
+                    if (form.idCardFrontUri != null) {
+                        frontUrl = uploadIdCard(form.idCardFrontUri!!, "front")
+                    }
+                    if (form.idCardBackUri != null) {
+                        backUrl = uploadIdCard(form.idCardBackUri!!, "back")
+                    }
+                }
+
                 val dto = RunnerApplicationDto(
                     id = UUID.randomUUID().toString(),
                     userId = currentUserId,
@@ -156,8 +193,8 @@ class RunnerApplyViewModel @Inject constructor(
                     studentId = form.studentId.trim(),
                     phone = form.phone.trim(),
                     reason = form.reason.trim().ifBlank { null },
-                    idCardFront = form.idCardFrontUrl.trim().ifBlank { null },
-                    idCardBack = form.idCardBackUrl.trim().ifBlank { null },
+                    idCardFront = frontUrl.trim().ifBlank { null },
+                    idCardBack = backUrl.trim().ifBlank { null },
                     status = "pending",
                     reviewComment = null,
                     reviewedBy = null,

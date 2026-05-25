@@ -11,6 +11,8 @@ data class AnnouncementEntity(
     val schoolId: String? = null,
     val publishedBy: String,
     val isPinned: Boolean = false,
+    val priority: String = "normal",
+    val status: String = "published",
     val createdAt: String? = null,
     val updatedAt: String? = null,
 )

@@ -19,6 +19,7 @@ data class MarketListingEntity(
     val isBargain: Boolean = true,
     val contact: String = "站内私信联系",
     val meetupLocation: String? = null,
+    val favoriteCount: Int = 0,
     val createdAt: String? = null,
     val updatedAt: String? = null,
 ) {

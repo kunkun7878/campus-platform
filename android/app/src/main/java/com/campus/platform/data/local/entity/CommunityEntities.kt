@@ -19,13 +19,19 @@ data class CommunityPostEntity(
     val viewCount: Int = 0,
     val createdAt: String? = null,
     val updatedAt: String? = null,
+    val reviewReason: String? = null,
 ) {
     companion object {
         const val SECTION_CAMPUS_WALL = "campus_wall"
         const val SECTION_DISCUSSION = "discussion"
+        const val SECTION_LOST_FOUND = "lost_found"
+        const val SECTION_SECOND_HAND = "second_hand"
+        const val SECTION_HELP = "help"
+        const val SECTION_ANNOUNCEMENT = "announcement"
         const val STATUS_PUBLISHED = "published"
         const val STATUS_HIDDEN = "hidden"
         const val STATUS_DELETED = "deleted"
+        const val STATUS_PENDING_REVIEW = "pending_review"
     }
 }
 
@@ -41,11 +47,13 @@ data class CommunityCommentEntity(
     val schoolId: String,
     val createdAt: String? = null,
     val updatedAt: String? = null,
+    val reviewReason: String? = null,
 ) {
     companion object {
         const val STATUS_PUBLISHED = "published"
         const val STATUS_HIDDEN = "hidden"
         const val STATUS_DELETED = "deleted"
+        const val STATUS_PENDING_REVIEW = "pending_review"
     }
 }
 

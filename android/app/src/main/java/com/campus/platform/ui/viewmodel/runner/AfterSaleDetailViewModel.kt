@@ -12,11 +12,16 @@ import com.campus.platform.domain.repository.IRunnerOrderRepository
 import com.campus.platform.domain.repository.IRunnerTaskRepository
 import com.campus.platform.ui.component.runner.TimelineEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.functions.functions
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import javax.inject.Inject
 
 private const val TAG = "AfterSaleDetailVM"
@@ -80,12 +85,27 @@ class AfterSaleDetailViewModel @Inject constructor(
     private val runnerOrderRepository: IRunnerOrderRepository,
     private val runnerTaskRepository: IRunnerTaskRepository,
     private val authRepository: AuthRepository,
+    private val supabase: SupabaseClient,
 ) : ViewModel() {
 
     private val saleId: String = savedStateHandle.get<String>("saleId") ?: ""
 
     private val _uiState = MutableStateFlow<AfterSaleDetailUiState>(AfterSaleDetailUiState.Loading)
     val uiState: StateFlow<AfterSaleDetailUiState> = _uiState.asStateFlow()
+
+    // ── Supplement state ───────────────────────────────────────
+
+    private val _showSupplementSheet = MutableStateFlow(false)
+    val showSupplementSheet: StateFlow<Boolean> = _showSupplementSheet.asStateFlow()
+
+    private val _supplementText = MutableStateFlow("")
+    val supplementText: StateFlow<String> = _supplementText.asStateFlow()
+
+    private val _isSupplementSending = MutableStateFlow(false)
+    val isSupplementSending: StateFlow<Boolean> = _isSupplementSending.asStateFlow()
+
+    private val _supplementMessage = MutableStateFlow<String?>(null)
+    val supplementMessage: StateFlow<String?> = _supplementMessage.asStateFlow()
 
     init {
         if (saleId.isEmpty()) {
@@ -108,6 +128,54 @@ class AfterSaleDetailViewModel @Inject constructor(
 
     fun afterSaleStatusLabel(status: String): String =
         AFTER_SALE_STATUS_LABEL[status] ?: status
+
+    // ── Supplement ──────────────────────────────────────────
+
+    fun openSupplementSheet() {
+        _showSupplementSheet.value = true
+        _supplementText.value = ""
+    }
+
+    fun closeSupplementSheet() {
+        _showSupplementSheet.value = false
+    }
+
+    fun onSupplementTextChange(text: String) {
+        _supplementText.value = text
+    }
+
+    fun submitSupplement() {
+        val text = _supplementText.value.trim()
+        if (text.isBlank()) {
+            _supplementMessage.value = "请输入补充说明内容"
+            return
+        }
+        viewModelScope.launch {
+            _isSupplementSending.value = true
+            try {
+                val body = buildJsonObject {
+                    put("action", "supplement")
+                    put("after_sale_id", saleId)
+                    put("description", text)
+                    put("operator_id", authRepository.currentUserId() ?: "")
+                }
+                supabase.functions.invoke("runner-after-sale", body = body)
+                _showSupplementSheet.value = false
+                _supplementMessage.value = "补充说明已提交"
+                // Refresh detail
+                loadDetail()
+            } catch (e: Exception) {
+                Log.e(TAG, "提交补充说明失败", e)
+                _supplementMessage.value = "提交失败，请稍后重试"
+            } finally {
+                _isSupplementSending.value = false
+            }
+        }
+    }
+
+    fun clearSupplementMessage() {
+        _supplementMessage.value = null
+    }
 
     // ── Private ─────────────────────────────────────────────
 

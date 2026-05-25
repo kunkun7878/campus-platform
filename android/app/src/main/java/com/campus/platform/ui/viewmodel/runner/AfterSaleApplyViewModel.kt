@@ -1,5 +1,6 @@
 package com.campus.platform.ui.viewmodel.runner
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -7,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
 import com.campus.platform.data.local.mapper.AfterSaleDto
 import com.campus.platform.domain.repository.IAfterSaleRepository
+import com.campus.platform.domain.repository.IImageUploadRepository
 import com.campus.platform.domain.repository.IRunnerOrderRepository
 import com.campus.platform.domain.repository.IRunnerTaskRepository
 import com.campus.platform.domain.repository.IUserRepository
@@ -21,8 +23,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import javax.inject.Inject
@@ -35,6 +39,9 @@ data class AfterSaleApplyFormState(
     val orderId: String = "",
     val afterSaleType: String = "refund",
     val reason: String = "",
+    val selectedUris: List<Uri> = emptyList(),
+    val uploadedUrls: List<String> = emptyList(),
+    val isUploading: Boolean = false,
     val isLoading: Boolean = false,
     val isSummaryLoading: Boolean = false,
     val error: String? = null,
@@ -80,6 +87,7 @@ class AfterSaleApplyViewModel @Inject constructor(
     private val runnerOrderRepository: IRunnerOrderRepository,
     private val runnerTaskRepository: IRunnerTaskRepository,
     private val userRepository: IUserRepository,
+    private val imageUploadRepository: IImageUploadRepository,
     private val supabase: SupabaseClient,
 ) : ViewModel() {
 
@@ -114,6 +122,14 @@ class AfterSaleApplyViewModel @Inject constructor(
         _formState.update { it.copy(error = null) }
     }
 
+    fun onAddImages(uris: List<Uri>) {
+        _formState.update { it.copy(selectedUris = it.selectedUris + uris, error = null) }
+    }
+
+    fun onRemoveImage(index: Int) {
+        _formState.update { it.copy(selectedUris = it.selectedUris.toMutableList().also { list -> list.removeAt(index) }) }
+    }
+
     fun submit() {
         val state = _formState.value
         if (state.reason.isBlank()) {
@@ -129,14 +145,39 @@ class AfterSaleApplyViewModel @Inject constructor(
                     return@launch
                 }
 
+                // Upload images if any were selected
+                val imageUrls = if (state.selectedUris.isNotEmpty()) {
+                    _formState.update { it.copy(isUploading = true) }
+                    try {
+                        imageUploadRepository.uploadImages(
+                            uris = state.selectedUris,
+                            bucket = "chat-images", // after-sale bucket not yet created, fallback to chat-images
+                            resourceIdPrefix = "after_sale_${state.orderId}",
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "图片上传失败", e)
+                        _formState.update { it.copy(isUploading = false, isLoading = false, error = "图片上传失败，请稍后重试") }
+                        return@launch
+                    }
+                } else {
+                    emptyList()
+                }
+
+                val imagesJson = if (imageUrls.isNotEmpty()) {
+                    buildJsonArray { imageUrls.forEach { add(JsonPrimitive(it)) } }.toString()
+                } else {
+                    "[]"
+                }
+
                 // 调用 Edge Function runner-after-sale 执行原子化操作：
                 //   insert after_sales + update order status + insert timeline
                 val body = buildJsonObject {
+                    put("action", "create")
                     put("order_id", state.orderId)
                     put("requester_id", userId)
                     put("type", state.afterSaleType)
                     put("reason", state.reason)
-                    put("images", "[]")
+                    put("images", imagesJson)
                 }
 
                 val httpResponse = supabase.functions.invoke(

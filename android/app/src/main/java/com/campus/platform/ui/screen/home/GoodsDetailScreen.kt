@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -51,6 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -92,6 +95,12 @@ fun GoodsDetailScreen(
     val isFavorited by viewModel.isFavorited.collectAsStateWithLifecycle()
     val isOwnListing by viewModel.isOwnListing.collectAsStateWithLifecycle()
     val sellerProfile by viewModel.sellerProfile.collectAsStateWithLifecycle()
+    val isEditing by viewModel.isEditing.collectAsStateWithLifecycle()
+    val editTitle by viewModel.editTitle.collectAsStateWithLifecycle()
+    val editDescription by viewModel.editDescription.collectAsStateWithLifecycle()
+    val editPrice by viewModel.editPrice.collectAsStateWithLifecycle()
+    val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
+    val saveMessage by viewModel.saveMessage.collectAsStateWithLifecycle()
 
     val goodsId = navController.currentBackStackEntry?.toRoute<GoodsDetail>()?.goodsId ?: ""
 
@@ -113,6 +122,14 @@ fun GoodsDetailScreen(
     LaunchedEffect(listingSellerId) {
         if (listingSellerId != null) {
             viewModel.loadSellerProfile(listingSellerId)
+        }
+    }
+
+    // Save message Snackbar
+    LaunchedEffect(saveMessage) {
+        saveMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearSaveMessage()
         }
     }
 
@@ -188,9 +205,7 @@ fun GoodsDetailScreen(
                         }
                     },
                     onEditClick = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("编辑功能即将上线")
-                        }
+                        viewModel.startEditing()
                     },
                     onDelistClick = {
                         scope.launch {
@@ -259,9 +274,24 @@ fun GoodsDetailScreen(
             }
         }
     }
+
+    // ── Edit Bottom Sheet ──────────────────────────────────────
+    if (isEditing) {
+        EditListingSheet(
+            title = editTitle,
+            description = editDescription,
+            price = editPrice,
+            isSaving = isSaving,
+            onTitleChange = { viewModel.onEditTitleChange(it) },
+            onDescriptionChange = { viewModel.onEditDescriptionChange(it) },
+            onPriceChange = { viewModel.onEditPriceChange(it) },
+            onSave = { viewModel.saveEdits() },
+            onCancel = { viewModel.cancelEditing() },
+        )
+    }
 }
 
-// ── Content ────────────────────────────────────────────────────
+// ── Edit Sheet ─────────────────────────────────────────────────
 
 @Composable
 private fun GoodsDetailContent(
@@ -661,6 +691,93 @@ private fun GoodsDetailBottomBar(
                     Spacer(modifier = Modifier.width(6.dp))
                 }
                 Text(if (purchaseLoading) "处理中..." else "立即购买")
+            }
+        }
+    }
+}
+
+// ── Edit Bottom Sheet ───────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditListingSheet(
+    title: String,
+    description: String,
+    price: String,
+    isSaving: Boolean,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onPriceChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    androidx.compose.material3.ModalBottomSheet(
+        onDismissRequest = onCancel,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = "编辑商品",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+
+            OutlinedTextField(
+                value = title,
+                onValueChange = onTitleChange,
+                label = { Text("标题") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            OutlinedTextField(
+                value = description,
+                onValueChange = onDescriptionChange,
+                label = { Text("描述") },
+                minLines = 3,
+                maxLines = 5,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            OutlinedTextField(
+                value = price,
+                onValueChange = onPriceChange,
+                label = { Text("价格（元）") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                OutlinedButton(
+                    onClick = onCancel,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("取消")
+                }
+                Button(
+                    onClick = onSave,
+                    enabled = !isSaving,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+                    Text(if (isSaving) "保存中…" else "保存")
+                }
             }
         }
     }

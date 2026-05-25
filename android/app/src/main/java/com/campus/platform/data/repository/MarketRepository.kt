@@ -41,18 +41,19 @@ private data class MarketListingApiDto(
     @SerialName("meetup_location") val meetupLocation: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
+    @SerialName("favorite_count") val favoriteCount: Int = 0,
 )
 
 private fun MarketListingApiDto.toMapperDto() = MarketListingDto(
     id, sellerId, title, description, price, originalPrice, images,
     category, condition, status, schoolId, isBargain, contact,
-    meetupLocation, createdAt, updatedAt,
+    meetupLocation, favoriteCount, createdAt, updatedAt,
 )
 
 private fun MarketListingDto.toApiDto() = MarketListingApiDto(
     id, sellerId, title, description, price, originalPrice, images,
     category, condition, status, schoolId, isBargain, contact,
-    meetupLocation, createdAt, updatedAt,
+    meetupLocation, createdAt, updatedAt, favoriteCount,
 )
 
 @Singleton

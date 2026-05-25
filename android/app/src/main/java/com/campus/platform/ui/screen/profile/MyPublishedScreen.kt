@@ -34,7 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.campus.platform.data.local.entity.MarketListingEntity
-import com.campus.platform.data.local.mapper.MarketListingDto
+import com.campus.platform.data.local.mapper.PublishedEntry
 import com.campus.platform.navigation.CampusRoutes
 import com.campus.platform.navigation.GoodsDetail
 import com.campus.platform.ui.component.ChipFilterBar
@@ -45,18 +45,12 @@ import com.campus.platform.ui.component.MarketUiMapper
 import com.campus.platform.ui.component.runner.RunnerEmptyState
 import com.campus.platform.ui.viewmodel.UiState
 import com.campus.platform.ui.viewmodel.profile.MyPublishedViewModel
-import kotlinx.serialization.json.Json
 
 /**
  * 「我发布的」跨类型商品列表。
  *
  * 顶部为 FilterChip 筛选栏（全部 | 跑腿 | 二手 | 失物），
- * 下方根据 [MyPublishedViewModel.uiState] 展示 Loading / Error / Empty / List 四态。
- *
- * 点击行为按商品状态分支：
- * - active → 跳转 GoodsDetail
- * - sold → 有订单映射时跳转 MarketOrderDetail，否则 GoodsDetail
- * - 其它 → GoodsDetail
+ * 下方展示统一 [PublishedEntry] 列表。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,25 +61,23 @@ fun MyPublishedScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val activeFilterIndex by viewModel.activeFilterIndex.collectAsStateWithLifecycle()
-    val isUnderDevelopment by viewModel.isUnderDevelopment.collectAsStateWithLifecycle()
     val listingOrderMap by viewModel.listingOrderMap.collectAsStateWithLifecycle()
 
     var isRefreshing by remember { mutableStateOf(false) }
-    var cachedListings by remember { mutableStateOf<List<MarketListingDto>?>(null) }
+    var cachedEntries by remember { mutableStateOf<List<PublishedEntry>?>(null) }
 
-    // Sync refresh state
     LaunchedEffect(uiState) {
         when (uiState) {
-            is UiState.Success -> cachedListings = (uiState as UiState.Success).data
-            is UiState.Error -> { /* Real error — keep previous cache */ }
+            is UiState.Success -> cachedEntries = (uiState as UiState.Success).data
+            is UiState.Error -> {}
             else -> {}
         }
         isRefreshing = false
     }
 
-    val displayListings = when (uiState) {
+    val displayEntries = when (uiState) {
         is UiState.Success -> (uiState as UiState.Success).data
-        else -> cachedListings
+        else -> cachedEntries
     }
 
     Scaffold(
@@ -113,7 +105,6 @@ fun MyPublishedScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            // 副标题 — 来源类型
             Text(
                 text = "跑腿·二手·失物",
                 style = MaterialTheme.typography.bodySmall,
@@ -121,14 +112,12 @@ fun MyPublishedScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
 
-            // FilterChip 筛选栏
             ChipFilterBar(
                 items = MyPublishedViewModel.FILTER_LABELS,
                 selectedIndex = activeFilterIndex,
                 onSelected = { viewModel.selectFilter(it) },
             )
 
-            // 内容区
             when (val state = uiState) {
                 is UiState.Loading -> {
                     Box(
@@ -154,25 +143,18 @@ fun MyPublishedScreen(
                 }
 
                 is UiState.Success -> {
-                    val data = displayListings
+                    val data = displayEntries
                     if (data.isNullOrEmpty()) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (isUnderDevelopment) {
-                                RunnerEmptyState(
-                                    title = "功能开发中",
-                                    subtitle = "该分类功能将在后续版本上线",
-                                )
-                            } else {
-                                RunnerEmptyState(
-                                    title = "还没有发布任何商品",
-                                    subtitle = "去发布你的第一件好物吧",
-                                    actionLabel = "去发布",
-                                    onAction = { navController.navigate(CampusRoutes.PublishHub.route) },
-                                )
-                            }
+                            RunnerEmptyState(
+                                title = "还没有发布任何内容",
+                                subtitle = "去发布你的第一条内容吧",
+                                actionLabel = "去发布",
+                                onAction = { navController.navigate(CampusRoutes.PublishHub.route) },
+                            )
                         }
                     } else {
                         PullToRefreshBox(
@@ -194,33 +176,39 @@ fun MyPublishedScreen(
                                 items(
                                     items = data,
                                     key = { it.id },
-                                ) { listing ->
-                                    val item = listing.toMarketFeedItem()
+                                ) { entry ->
+                                    val item = entry.toMarketFeedItem()
                                     MarketFeedCard(
                                         item = item,
                                         variant = MarketCardVariant.MY_PUBLISHED,
                                         onClick = {
-                                            when (listing.status) {
-                                                MarketListingEntity.STATUS_ACTIVE -> {
-                                                    navController.navigate(
-                                                        GoodsDetail(listing.id),
-                                                    )
-                                                }
-                                                MarketListingEntity.STATUS_SOLD -> {
-                                                    val orderId = listingOrderMap[listing.id]
-                                                    if (orderId != null) {
-                                                        navController.navigate(
-                                                            CampusRoutes.MarketOrderDetail.createRoute(orderId),
-                                                        )
-                                                    } else {
-                                                        navController.navigate(
-                                                            GoodsDetail(listing.id),
-                                                        )
+                                            when (entry) {
+                                                is PublishedEntry.Market -> {
+                                                    val listing = entry.listing
+                                                    when (listing.status) {
+                                                        MarketListingEntity.STATUS_SOLD -> {
+                                                            val orderId = listingOrderMap[listing.id]
+                                                            if (orderId != null) {
+                                                                navController.navigate(
+                                                                    CampusRoutes.MarketOrderDetail.createRoute(orderId),
+                                                                )
+                                                            } else {
+                                                                navController.navigate(GoodsDetail(listing.id))
+                                                            }
+                                                        }
+                                                        else -> {
+                                                            navController.navigate(GoodsDetail(listing.id))
+                                                        }
                                                     }
                                                 }
-                                                else -> {
+                                                is PublishedEntry.Runner -> {
                                                     navController.navigate(
-                                                        GoodsDetail(listing.id),
+                                                        CampusRoutes.OrderDetail.createRoute(entry.id)
+                                                    )
+                                                }
+                                                is PublishedEntry.LostFound -> {
+                                                    navController.navigate(
+                                                        CampusRoutes.LostDetailRoute.createRoute(entry.id)
                                                     )
                                                 }
                                             }
@@ -236,19 +224,32 @@ fun MyPublishedScreen(
     }
 }
 
-// ── 映射工具 ──────────────────────────────────────────────────────────
+// ── PublishedEntry → MarketFeedItem ─────────────────────────────────────
 
-/** [MarketListingDto] → [MarketFeedItem] 映射 */
-private fun MarketListingDto.toMarketFeedItem(): MarketFeedItem = MarketFeedItem(
+private fun PublishedEntry.toMarketFeedItem(): MarketFeedItem = MarketFeedItem(
     id = id,
     images = MarketUiMapper.parseImages(images),
     title = title,
-    price = "¥$price",
-    condition = MarketUiMapper.conditionDisplay(condition),
-    category = category,
+    price = when (this) {
+        is PublishedEntry.Market -> "¥${listing.price}"
+        is PublishedEntry.Runner -> "¥${task.price + task.tip}"
+        is PublishedEntry.LostFound -> if (item.reward > 0) "¥${item.reward}" else "--"
+    },
+    condition = when (this) {
+        is PublishedEntry.Market -> MarketUiMapper.conditionDisplay(listing.condition)
+        is PublishedEntry.Runner -> "跑腿"
+        is PublishedEntry.LostFound -> when (item.type) { "lost" -> "失物" else -> "招领" }
+    },
+    category = when (this) {
+        is PublishedEntry.Market -> listing.category
+        is PublishedEntry.Runner -> task.type
+        is PublishedEntry.LostFound -> item.category
+    },
     time = MarketUiMapper.formatTime(createdAt),
     status = MarketUiMapper.statusDisplay(status),
-    // TODO Phase 7: favoriteCount 需要后端添加 favorite_count 字段 + trigger，当前暂为 0
-    favoriteCount = 0,
+    favoriteCount = when (this) {
+        is PublishedEntry.Market -> listing.favoriteCount
+        else -> 0
+    },
     isFavorite = false,
 )

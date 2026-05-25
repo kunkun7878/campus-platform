@@ -33,6 +33,8 @@ private data class AnnouncementApiDto(
     @SerialName("school_id") val schoolId: String? = null,
     @SerialName("published_by") val publishedBy: String,
     @SerialName("is_pinned") val isPinned: Boolean = false,
+    val priority: String = "normal",
+    val status: String = "published",
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
 )
@@ -82,7 +84,11 @@ private data class FeedbackApiDto(
 )
 
 private fun AnnouncementApiDto.toMapperDto() = AnnouncementDto(
-    id, title, content, schoolId, publishedBy, isPinned, createdAt, updatedAt,
+    id, title, content, schoolId, publishedBy, isPinned, priority, status, createdAt, updatedAt,
+)
+
+private fun AnnouncementDto.toApiDto() = AnnouncementApiDto(
+    id, title, content, schoolId, publishedBy, isPinned, priority, status, createdAt, updatedAt,
 )
 
 private fun CouponApiDto.toMapperDto() = CouponDto(
@@ -119,6 +125,10 @@ class MiscRepository @Inject constructor(
         return miscDao.getAnnouncementsBySchoolId(schoolId).map { it.map { e -> e.toDto() } }
     }
 
+    override suspend fun getAnnouncementById(id: String): AnnouncementDto? {
+        return miscDao.getAnnouncementById(id)?.toDto()
+    }
+
     override suspend fun refreshAnnouncements(schoolId: String) {
         try {
             val result = supabase.postgrest
@@ -130,6 +140,38 @@ class MiscRepository @Inject constructor(
             throw e
         } catch (e: Exception) {
             Log.e(javaClass.simpleName, "Refresh error", e)
+        }
+    }
+
+    override suspend fun upsertAnnouncement(announcement: AnnouncementDto) {
+        val apiDto = announcement.toApiDto()
+        // Check if exists; Supabase Kotlin SDK doesn't have upsert with onConflict.
+        // Use insert if new, update if existing.
+        val existing = miscDao.getAnnouncementById(announcement.id)
+        val result = if (existing != null) {
+            supabase.postgrest
+                .from("announcements")
+                .update(apiDto) {
+                    filter { eq("id", announcement.id) }
+                    select()
+                }
+                .decodeSingle<AnnouncementApiDto>()
+        } else {
+            supabase.postgrest
+                .from("announcements")
+                .insert(apiDto) { select() }
+                .decodeSingle<AnnouncementApiDto>()
+        }
+        miscDao.upsertAnnouncement(result.toMapperDto().toEntity())
+    }
+
+    override suspend fun deleteAnnouncement(announcementId: String) {
+        supabase.postgrest
+            .from("announcements")
+            .delete { filter { eq("id", announcementId) } }
+        val local = miscDao.getAnnouncementById(announcementId)
+        if (local != null) {
+            miscDao.upsertAnnouncement(local.copy(status = "deleted"))
         }
     }
 

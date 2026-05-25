@@ -23,6 +23,7 @@ data class CommunityPostDto(
     val viewCount: Int,
     val createdAt: String?,
     val updatedAt: String?,
+    val reviewReason: String? = null,
 )
 
 fun CommunityPostEntity.toDto(): CommunityPostDto = CommunityPostDto(
@@ -40,6 +41,7 @@ fun CommunityPostEntity.toDto(): CommunityPostDto = CommunityPostDto(
     viewCount = viewCount,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    reviewReason = reviewReason,
 )
 
 fun CommunityPostDto.toEntity(): CommunityPostEntity = CommunityPostEntity(
@@ -57,6 +59,7 @@ fun CommunityPostDto.toEntity(): CommunityPostEntity = CommunityPostEntity(
     viewCount = viewCount,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    reviewReason = reviewReason,
 )
 
 // ── CommunityComment DTO (simple) ───────────────────────────
@@ -72,6 +75,7 @@ data class CommunityCommentDto(
     val schoolId: String,
     val createdAt: String?,
     val updatedAt: String?,
+    val reviewReason: String? = null,
 )
 
 fun CommunityCommentEntity.toDto(): CommunityCommentDto = CommunityCommentDto(
@@ -85,6 +89,7 @@ fun CommunityCommentEntity.toDto(): CommunityCommentDto = CommunityCommentDto(
     schoolId = schoolId,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    reviewReason = reviewReason,
 )
 
 fun CommunityCommentDto.toEntity(): CommunityCommentEntity = CommunityCommentEntity(
@@ -98,6 +103,7 @@ fun CommunityCommentDto.toEntity(): CommunityCommentEntity = CommunityCommentEnt
     schoolId = schoolId,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    reviewReason = reviewReason,
 )
 
 // ── OfficialGroup DTO (simple) ──────────────────────────────

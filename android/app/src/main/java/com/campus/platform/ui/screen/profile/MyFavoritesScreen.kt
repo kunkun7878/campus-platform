@@ -1,7 +1,5 @@
 package com.campus.platform.ui.screen.profile
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
@@ -37,8 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.campus.platform.data.local.entity.MarketListingEntity
-import com.campus.platform.data.local.mapper.MarketListingDto
+import com.campus.platform.data.local.mapper.FavoriteEntry
 import com.campus.platform.navigation.CampusRoutes
 import com.campus.platform.navigation.GoodsDetail
 import com.campus.platform.ui.component.ChipFilterBar
@@ -50,17 +47,12 @@ import com.campus.platform.ui.component.runner.RunnerEmptyState
 import com.campus.platform.ui.viewmodel.UiState
 import com.campus.platform.ui.viewmodel.profile.MyFavoritesViewModel
 import kotlinx.coroutines.delay
-import kotlinx.serialization.json.Json
 
 /**
  * 「我的收藏」跨类型收藏列表。
  *
  * 顶部为 FilterChip 筛选栏（全部 | 跑腿 | 二手 | 失物 | 帖子），
- * 下方根据 [MyFavoritesViewModel.uiState] 展示 Loading / Error / Empty / List 四态。
- *
- * 点击卡片跳转 [CampusRoutes.GoodsDetail]。
- * 取消收藏时执行 fadeOut + shrinkVertically 退出动画，动画完成后
- * 调用 [MyFavoritesViewModel.removeFavorite] 移除数据。
+ * 下方展示统一 [FavoriteEntry] 列表。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,27 +63,24 @@ fun MyFavoritesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val activeFilterIndex by viewModel.activeFilterIndex.collectAsStateWithLifecycle()
-    val isUnderDevelopment by viewModel.isUnderDevelopment.collectAsStateWithLifecycle()
 
     var isRefreshing by remember { mutableStateOf(false) }
-    var cachedListings by remember { mutableStateOf<List<MarketListingDto>?>(null) }
+    var cachedEntries by remember { mutableStateOf<List<FavoriteEntry>?>(null) }
 
-    // Sync refresh state
     LaunchedEffect(uiState) {
         when (uiState) {
-            is UiState.Success -> cachedListings = (uiState as UiState.Success).data
-            is UiState.Error -> { /* Real error — keep previous cache */ }
+            is UiState.Success -> cachedEntries = (uiState as UiState.Success).data
+            is UiState.Error -> {}
             else -> {}
         }
         isRefreshing = false
     }
 
-    val displayListings = when (uiState) {
+    val displayEntries = when (uiState) {
         is UiState.Success -> (uiState as UiState.Success).data
-        else -> cachedListings
+        else -> cachedEntries
     }
 
-    // 本地状态：正在取消收藏（退出动画中）的 ID 集合
     val removingIds = remember { mutableStateListOf<String>() }
 
     Scaffold(
@@ -119,14 +108,12 @@ fun MyFavoritesScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            // FilterChip 筛选栏
             ChipFilterBar(
                 items = MyFavoritesViewModel.FILTER_LABELS,
                 selectedIndex = activeFilterIndex,
                 onSelected = { viewModel.selectFilter(it) },
             )
 
-            // 内容区
             when (val state = uiState) {
                 is UiState.Loading -> {
                     Box(
@@ -152,25 +139,18 @@ fun MyFavoritesScreen(
                 }
 
                 is UiState.Success -> {
-                    val data = displayListings
+                    val data = displayEntries
                     if (data.isNullOrEmpty()) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (isUnderDevelopment) {
-                                RunnerEmptyState(
-                                    title = "功能开发中",
-                                    subtitle = "该分类功能将在后续版本上线",
-                                )
-                            } else {
-                                RunnerEmptyState(
-                                    title = "收藏夹是空的",
-                                    subtitle = "浏览时点击收藏，好物不再错过",
-                                    actionLabel = "去逛逛",
-                                    onAction = { navController.navigate(CampusRoutes.Home.route) },
-                                )
-                            }
+                            RunnerEmptyState(
+                                title = "收藏夹是空的",
+                                subtitle = "浏览时点击收藏，好物不再错过",
+                                actionLabel = "去逛逛",
+                                onAction = { navController.navigate(CampusRoutes.Home.route) },
+                            )
                         }
                     } else {
                         PullToRefreshBox(
@@ -192,18 +172,15 @@ fun MyFavoritesScreen(
                                 items(
                                     items = data,
                                     key = { it.id },
-                                ) { listing ->
-                                    val listingId = listing.id
-                                    val isExiting = listingId in removingIds
+                                ) { entry ->
+                                    val entryId = entry.id
+                                    val isExiting = entryId in removingIds
 
-                                    // 当 AnimatedVisibility 的退出动画完成后，
-                                    // 通过 LaunchedEffect 延迟后调用 ViewModel 移除数据
                                     if (isExiting) {
-                                        LaunchedEffect(listingId) {
-                                            // 等待动画完成（fadeOut + shrinkVertically）
+                                        LaunchedEffect(entryId) {
                                             delay(400L)
-                                            viewModel.removeFavorite(listingId)
-                                            removingIds.remove(listingId)
+                                            viewModel.removeFavorite(entryId)
+                                            removingIds.remove(entryId)
                                         }
                                     }
 
@@ -211,18 +188,30 @@ fun MyFavoritesScreen(
                                         visible = !isExiting,
                                         exit = fadeOut() + shrinkVertically(),
                                     ) {
-                                        val item = listing.toMarketFeedItem()
+                                        val item = entry.toMarketFeedItem()
                                         MarketFeedCard(
                                             item = item,
                                             variant = MarketCardVariant.MY_FAVORITES,
                                             onClick = {
-                                                navController.navigate(
-                                                    GoodsDetail(listingId),
-                                                )
+                                                when (entry) {
+                                                    is FavoriteEntry.Market -> {
+                                                        navController.navigate(GoodsDetail(entryId))
+                                                    }
+                                                    is FavoriteEntry.Runner -> {
+                                                        navController.navigate(
+                                                            CampusRoutes.OrderDetail.createRoute(entryId)
+                                                        )
+                                                    }
+                                                    is FavoriteEntry.LostFound -> {
+                                                        navController.navigate(
+                                                            CampusRoutes.LostDetailRoute.createRoute(entryId)
+                                                        )
+                                                    }
+                                                }
                                             },
                                             onUnfavoriteClick = {
-                                                if (listingId !in removingIds) {
-                                                    removingIds.add(listingId)
+                                                if (entryId !in removingIds) {
+                                                    removingIds.add(entryId)
                                                 }
                                             },
                                         )
@@ -237,19 +226,32 @@ fun MyFavoritesScreen(
     }
 }
 
-// ── 映射工具 ──────────────────────────────────────────────────────────
+// ── FavoriteEntry → MarketFeedItem ──────────────────────────────────────
 
-/** [MarketListingDto] → [MarketFeedItem] 映射 */
-private fun MarketListingDto.toMarketFeedItem(): MarketFeedItem = MarketFeedItem(
+private fun FavoriteEntry.toMarketFeedItem(): MarketFeedItem = MarketFeedItem(
     id = id,
     images = MarketUiMapper.parseImages(images),
     title = title,
-    price = "¥$price",
-    condition = MarketUiMapper.conditionDisplay(condition),
-    category = category,
+    price = when (this) {
+        is FavoriteEntry.Market -> "¥${listing.price}"
+        is FavoriteEntry.Runner -> "¥${task.price + task.tip}"
+        is FavoriteEntry.LostFound -> if (item.reward > 0) "¥${item.reward}" else "--"
+    },
+    condition = when (this) {
+        is FavoriteEntry.Market -> MarketUiMapper.conditionDisplay(listing.condition)
+        is FavoriteEntry.Runner -> "跑腿"
+        is FavoriteEntry.LostFound -> when (item.type) { "lost" -> "失物" else -> "招领" }
+    },
+    category = when (this) {
+        is FavoriteEntry.Market -> listing.category
+        is FavoriteEntry.Runner -> task.type
+        is FavoriteEntry.LostFound -> item.category
+    },
     time = MarketUiMapper.formatTime(createdAt),
-    status = MarketUiMapper.statusDisplay(status),
-    // TODO Phase 7: favoriteCount 需要后端添加 favorite_count 字段 + trigger，当前暂为 0
-    favoriteCount = 0,
-    isFavorite = false,
+    status = "",
+    favoriteCount = when (this) {
+        is FavoriteEntry.Market -> listing.favoriteCount
+        else -> 0
+    },
+    isFavorite = true,
 )

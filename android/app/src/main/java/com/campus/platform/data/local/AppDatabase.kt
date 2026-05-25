@@ -22,6 +22,8 @@ import com.campus.platform.data.local.entity.ConversationEntity
 import com.campus.platform.data.local.entity.CouponEntity
 import com.campus.platform.data.local.entity.FeedbackEntity
 import com.campus.platform.data.local.entity.GroupMemberEntity
+import com.campus.platform.data.local.entity.InviteCodeEntity
+import com.campus.platform.data.local.entity.InviteRecordEntity
 import com.campus.platform.data.local.entity.LostFoundClaimEntity
 import com.campus.platform.data.local.entity.LostFoundItemEntity
 import com.campus.platform.data.local.entity.MarketListingEntity
@@ -41,6 +43,7 @@ import com.campus.platform.data.local.entity.UserAddressEntity
 import com.campus.platform.data.local.entity.UserCouponEntity
 import com.campus.platform.data.local.entity.UserFavoriteEntity
 import com.campus.platform.data.local.entity.WalletEntity
+import com.campus.platform.data.local.entity.WalletTransactionEntity
 
 @Database(
     entities = [
@@ -50,9 +53,12 @@ import com.campus.platform.data.local.entity.WalletEntity
         // User
         ProfileEntity::class,
         WalletEntity::class,
+        WalletTransactionEntity::class,
         UserAddressEntity::class,
         UserFavoriteEntity::class,
         NotificationEntity::class,
+        InviteCodeEntity::class,
+        InviteRecordEntity::class,
         // Runner
         RunnerTaskEntity::class,
         RunnerOrderEntity::class,
@@ -82,7 +88,7 @@ import com.campus.platform.data.local.entity.WalletEntity
         UserCouponEntity::class,
         FeedbackEntity::class,
     ],
-    version = 3,
+    version = 6,  // Phase 7 A4: added InviteCode + InviteRecord entities
     exportSchema = true,
 )
 @TypeConverters(CampusTypeConverters::class)

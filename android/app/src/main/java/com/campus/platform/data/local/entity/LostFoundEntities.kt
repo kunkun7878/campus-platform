@@ -20,6 +20,7 @@ data class LostFoundItemEntity(
     val contact: String = "站内私信联系",
     val createdAt: String? = null,
     val updatedAt: String? = null,
+    val returnedAt: String? = null,
 ) {
     companion object {
         const val TYPE_LOST = "lost"

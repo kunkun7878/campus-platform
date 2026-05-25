@@ -20,6 +20,7 @@ data class MarketListingDto(
     val isBargain: Boolean,
     val contact: String,
     val meetupLocation: String?,
+    val favoriteCount: Int = 0,
     val createdAt: String?,
     val updatedAt: String?,
 )
@@ -39,6 +40,7 @@ fun MarketListingEntity.toDto(): MarketListingDto = MarketListingDto(
     isBargain = isBargain,
     contact = contact,
     meetupLocation = meetupLocation,
+    favoriteCount = favoriteCount,
     createdAt = createdAt,
     updatedAt = updatedAt,
 )
@@ -58,6 +60,7 @@ fun MarketListingDto.toEntity(): MarketListingEntity = MarketListingEntity(
     isBargain = isBargain,
     contact = contact,
     meetupLocation = meetupLocation,
+    favoriteCount = favoriteCount,
     createdAt = createdAt,
     updatedAt = updatedAt,
 )

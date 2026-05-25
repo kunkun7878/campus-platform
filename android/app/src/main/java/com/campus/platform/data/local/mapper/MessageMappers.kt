@@ -13,6 +13,9 @@ data class ConversationDto(
     val lastMessageAt: String?,
     val createdAt: String?,
     val updatedAt: String?,
+    val sourceType: String? = null,
+    val sourceId: String? = null,
+    val lastMessageSenderId: String? = null,
 )
 
 fun ConversationEntity.toDto(): ConversationDto = ConversationDto(
@@ -23,6 +26,9 @@ fun ConversationEntity.toDto(): ConversationDto = ConversationDto(
     lastMessageAt = lastMessageAt,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    sourceType = sourceType,
+    sourceId = sourceId,
+    lastMessageSenderId = lastMessageSenderId,
 )
 
 fun ConversationDto.toEntity(): ConversationEntity = ConversationEntity(
@@ -33,6 +39,9 @@ fun ConversationDto.toEntity(): ConversationEntity = ConversationEntity(
     lastMessageAt = lastMessageAt,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    sourceType = sourceType,
+    sourceId = sourceId,
+    lastMessageSenderId = lastMessageSenderId,
 )
 
 // ── MessageDto ────────────────────────────────────────────

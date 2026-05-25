@@ -75,7 +75,7 @@ fun campusScreenConfigFor(currentRoute: String?): CampusScreenConfig {
         }
 
         // ── 发布子屏 ──
-        currentRoute == "publish" -> {
+        currentRoute == CampusRoutes.Publish.route -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,
                 brand = "发布需求", search = "搜索发布模板、常用地址、跑腿规则",
@@ -83,21 +83,21 @@ fun campusScreenConfigFor(currentRoute: String?): CampusScreenConfig {
         }
 
         // ── 市集子屏（保留 BottomNav，方便返回） ──
-        currentRoute.contains("GoodsDetail") -> {
+        currentRoute.startsWith("goods-detail") -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,
                 brand = "校园市集", search = "搜索商品、卖家、分类",
             )
         }
 
-        currentRoute.contains("LostDetail") -> {
+        currentRoute.startsWith("lost-detail") -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,
                 brand = "失物招领", search = "搜索失物、地点、时间",
             )
         }
 
-        currentRoute.contains("LostClaim") -> {
+        currentRoute.startsWith("lost-claim") -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,
                 brand = "认领申请", search = "搜索认领规则、问题提示",
@@ -180,7 +180,7 @@ fun campusScreenConfigFor(currentRoute: String?): CampusScreenConfig {
             CampusScreenConfig(showBottomNav = true, showHeroBar = false, brand = "聊天")
         }
 
-        currentRoute.contains("AnnouncementDetail") -> {
+        currentRoute.startsWith("announcement-detail") -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,
                 brand = "公告详情", search = "搜索公告内容、学校通知",
@@ -230,6 +230,63 @@ fun campusScreenConfigFor(currentRoute: String?): CampusScreenConfig {
 
         currentRoute.startsWith("profile/my-favorites") -> {
             CampusScreenConfig(showBottomNav = false, showHeroBar = false, brand = "我的收藏")
+        }
+
+        // ── Agent 后台（8 条） ──
+        currentRoute.startsWith("agent/dashboard") -> {
+            CampusScreenConfig(
+                showBottomNav = false, showHeroBar = true,
+                brand = "Agent 工作台", meta = "内容审核 · 用户管理 · 公告管理",
+            )
+        }
+
+        currentRoute.startsWith("agent/review-list") -> {
+            CampusScreenConfig(
+                showBottomNav = false, showHeroBar = true,
+                brand = "内容审核列表", meta = "帖子审核 · 评论审核",
+            )
+        }
+
+        currentRoute.startsWith("agent/review-detail") -> {
+            CampusScreenConfig(
+                showBottomNav = false, showHeroBar = true,
+                brand = "审核详情",
+            )
+        }
+
+        currentRoute.startsWith("agent/user-list") -> {
+            CampusScreenConfig(
+                showBottomNav = false, showHeroBar = true,
+                brand = "用户列表", meta = "用户管理 · 封禁处理",
+            )
+        }
+
+        currentRoute.startsWith("agent/user-detail") -> {
+            CampusScreenConfig(
+                showBottomNav = false, showHeroBar = true,
+                brand = "用户详情",
+            )
+        }
+
+        currentRoute.startsWith("agent/announcement-list") -> {
+            CampusScreenConfig(
+                showBottomNav = false, showHeroBar = true,
+                brand = "公告管理", meta = "发布 · 编辑 · 置顶",
+            )
+        }
+
+        currentRoute.startsWith("agent/announcement-edit") -> {
+            CampusScreenConfig(
+                showBottomNav = false, showHeroBar = true,
+                brand = "编辑公告",
+            )
+        }
+
+        currentRoute.startsWith("agent/runner-review") -> {
+            CampusScreenConfig(
+                showBottomNav = false, showHeroBar = true,
+                brand = "跑腿员审核", meta = "资质审核 · 身份认证",
+            )
         }
 
         // ── 认证 & 全局 ──

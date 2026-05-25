@@ -54,10 +54,13 @@ sealed class CampusRoutes(val route: String) {
     data object SchoolSelect : CampusRoutes("school-select")
 
     // ── 认证 ────────────────────────────────────────────
+    data object Splash : CampusRoutes("splash")
     data object Login : CampusRoutes("login")
     data object Register : CampusRoutes("register")
     data object PasswordReset : CampusRoutes("password-reset")
     data object AccountDelete : CampusRoutes("account-delete")
+    data object UserAgreement : CampusRoutes("user-agreement")
+    data object PrivacyPolicy : CampusRoutes("privacy-policy")
 
     // ── Bottom Nav Tab 根路由 ──────────────────────────
     data object Home : CampusRoutes("home")
@@ -129,4 +132,20 @@ sealed class CampusRoutes(val route: String) {
     data object MySold : CampusRoutes("profile/my-sold")
     data object MyBought : CampusRoutes("profile/my-bought")
     data object MyFavorites : CampusRoutes("profile/my-favorites")
+
+    // ── Agent 后台（8 条） ────────────────────────────────
+    data object AgentDashboard : CampusRoutes("agent/dashboard")
+    data object AgentReviewList : CampusRoutes("agent/review-list")
+    data object AgentReviewDetail : CampusRoutes("agent/review-detail/{postId}") {
+        fun createRoute(postId: String) = "agent/review-detail/$postId"
+    }
+    data object AgentUserList : CampusRoutes("agent/user-list")
+    data object AgentUserDetail : CampusRoutes("agent/user-detail/{userId}") {
+        fun createRoute(userId: String) = "agent/user-detail/$userId"
+    }
+    data object AgentAnnouncementList : CampusRoutes("agent/announcement-list")
+    data object AgentAnnouncementEdit : CampusRoutes("agent/announcement-edit/{announcementId}") {
+        fun createRoute(announcementId: String) = "agent/announcement-edit/$announcementId"
+    }
+    data object AgentRunnerReview : CampusRoutes("agent/runner-review")
 }

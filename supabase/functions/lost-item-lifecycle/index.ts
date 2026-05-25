@@ -118,7 +118,8 @@ const FEN_MULTIPLIER = 100; // wallet balance uses fen (分), reward input is yu
 
 /**
  * publish_item — 发布失物/招领启事。
- * 同时冻结悬赏金额（如果 reward > 0）。
+ * 先插入物品，再冻结悬赏金额（如果 reward > 0）。
+ * 扣款失败时将物品状态回滚为 closed，避免"扣了钱没物品"的不一致。
  */
 async function handlePublishItem(
   callerId: string,
@@ -145,94 +146,221 @@ async function handlePublishItem(
   // Wallet balance is in fen (分); convert reward from yuan to fen for wallet operations
   const itemRewardInFen = itemReward * FEN_MULTIPLIER;
 
-  // ── If there's a reward, freeze it from publisher's wallet ──
+  // ── Step 1: Insert item first ──
+  const itemInsert: Record<string, unknown> = {
+    publisher_id: callerId,
+    type,
+    title: (title as string).trim(),
+    description: description || null,
+    images: images || "[]",
+    location: location || null,
+    lost_date: lostDate || null,
+    category: category || "other",
+    status: "active",
+    school_id,
+    reward: itemReward,
+    contact: contact || "站内私信联系",
+    created_at: now,
+    updated_at: now,
+  };
   if (itemReward > 0) {
-    try {
-      const { data: wallet, error: walletError } = await supabaseAdmin
-        .from("wallets")
-        .select("balance")
-        .eq("user_id", callerId)
-        .single();
-
-      if (walletError || !wallet) {
-        return err(400, "钱包信息获取失败，无法冻结悬赏");
-      }
-
-      const currentBalance = wallet.balance as number;
-      if (currentBalance < itemRewardInFen) {
-        return err(400, "余额不足，无法设置该悬赏金额");
-      }
-
-      // Deduct from balance (freeze) with optimistic concurrency guard
-      const { data: updated, error: deductError } = await supabaseAdmin
-        .from("wallets")
-        .update({ balance: currentBalance - itemRewardInFen })
-        .eq("user_id", callerId)
-        .gte("balance", itemRewardInFen) // optimistic concurrency guard
-        .select("balance")
-        .single();
-
-      if (deductError || !updated) {
-        console.error("Failed to freeze reward:", deductError?.message ?? "concurrent modification");
-        return err(500, "冻结悬赏失败，请稍后重试");
-      }
-    } catch (e) {
-      console.error("Wallet freeze error:", e);
-      // Wallet may not exist yet; treat as non-fatal for MVP, but include warning
-      return err(400, "钱包操作异常，无法冻结悬赏金额，请先充值");
-    }
+    itemInsert.reward_frozen_at = now;
   }
-
-  // ── Insert item ──
   const { data: items, error: insertError } = await supabaseAdmin
     .from("lost_found_items")
-    .insert({
-      publisher_id: callerId,
-      type,
-      title: (title as string).trim(),
-      description: description || null,
-      images: images || "[]",
-      location: location || null,
-      lost_date: lostDate || null,
-      category: category || "other",
-      status: "active",
-      school_id,
-      reward: itemReward,
-      contact: contact || "站内私信联系",
-      created_at: now,
-      updated_at: now,
-    })
+    .insert(itemInsert)
     .select("*");
 
   if (insertError || !items || items.length === 0) {
-    // Rollback wallet freeze
-    if (itemReward > 0) {
-      try {
-        const { data: currentWallet } = await supabaseAdmin
-          .from("wallets")
-          .select("balance")
-          .eq("user_id", callerId)
-          .single();
-        if (currentWallet) {
-          await supabaseAdmin
-            .from("wallets")
-            .update({ balance: (currentWallet.balance as number) + itemRewardInFen })
-            .eq("user_id", callerId);
-        }
-      } catch (rbErr) {
-        console.error("Rollback freeze failed:", rbErr);
-      }
-    }
     console.error("Failed to insert item:", insertError?.message);
     return err(500, "发布失败，请稍后重试");
   }
 
   const item = items[0];
 
+  // ── Step 2: If there's a reward, deduct from wallet and freeze ──
+  if (itemReward > 0) {
+    try {
+      const { data: wallet, error: walletError } = await supabaseAdmin
+        .from("wallets")
+        .select("id, balance, frozen_balance")
+        .eq("user_id", callerId)
+        .single();
+
+      if (walletError || !wallet) {
+        // Rollback: close the item
+        await supabaseAdmin
+          .from("lost_found_items")
+          .update({ status: "closed", updated_at: new Date().toISOString() })
+          .eq("id", item.id);
+        return err(400, "钱包信息获取失败，无法冻结悬赏");
+      }
+
+      const currentBalance = wallet.balance as number;
+      if (currentBalance < itemRewardInFen) {
+        // Rollback: close the item
+        await supabaseAdmin
+          .from("lost_found_items")
+          .update({ status: "closed", updated_at: new Date().toISOString() })
+          .eq("id", item.id);
+        return err(400, "余额不足，无法设置该悬赏金额");
+      }
+
+      const currentFrozen = (wallet.frozen_balance as number) || 0;
+      const balanceAfter = currentBalance - itemRewardInFen;
+      const frozenAfter = currentFrozen + itemRewardInFen;
+
+      // Deduct balance and increase frozen_balance with optimistic concurrency guard
+      const { data: updated, error: deductError } = await supabaseAdmin
+        .from("wallets")
+        .update({
+          balance: balanceAfter,
+          frozen_balance: frozenAfter,
+        })
+        .eq("user_id", callerId)
+        .gte("balance", itemRewardInFen) // optimistic concurrency guard
+        .select("balance, frozen_balance")
+        .single();
+
+      if (deductError || !updated) {
+        console.error("Failed to freeze reward:", deductError?.message ?? "concurrent modification");
+        // Rollback: close the item
+        await supabaseAdmin
+          .from("lost_found_items")
+          .update({ status: "closed", updated_at: new Date().toISOString() })
+          .eq("id", item.id);
+        return err(500, "冻结悬赏失败，请稍后重试");
+      }
+
+      // Insert wallet_transactions record for the freeze
+      try {
+        await supabaseAdmin.from("wallet_transactions").insert({
+          user_id: callerId,
+          wallet_id: wallet.id,
+          amount: -itemRewardInFen,
+          type: "freeze",
+          balance_before: currentBalance,
+          balance_after: balanceAfter,
+          ref_type: "lost_found_item",
+          ref_id: item.id,
+          description: `发布失物招领冻结悬赏金 ${itemReward} 元`,
+        });
+      } catch (txnErr) {
+        console.error("Failed to insert wallet_transactions for freeze:", txnErr);
+        // Non-fatal — do not block publish flow
+      }
+    } catch (e) {
+      console.error("Wallet freeze error:", e);
+      // Rollback: close the item
+      try {
+        await supabaseAdmin
+          .from("lost_found_items")
+          .update({ status: "closed", updated_at: new Date().toISOString() })
+          .eq("id", item.id);
+      } catch (closeErr) {
+        console.error("Failed to close item after wallet error:", closeErr);
+      }
+      return err(400, "钱包操作异常，无法冻结悬赏金额，请先充值");
+    }
+  }
+
   return json({
     success: true,
     item_id: item.id,
     status: "active",
+  });
+}
+
+/**
+ * submit_claim — 用户提交认领申请。
+ * 验证物品存在且为 active，申请人非发布者，插入认领记录并通知发布者。
+ */
+async function handleSubmitClaim(
+  callerId: string,
+  body: Record<string, unknown>
+): Promise<Response> {
+  const itemId = body.item_id as string | undefined;
+  const proofDescription = body.proof_description as string | undefined;
+
+  if (!itemId) return err(400, "Missing required field: item_id");
+  if (!proofDescription || (typeof proofDescription === "string" && proofDescription.trim().length === 0)) {
+    return err(400, "Missing required field: proof_description");
+  }
+
+  // 1. Verify item exists and status='active'
+  const { data: item, error: itemError } = await supabaseAdmin
+    .from("lost_found_items")
+    .select("*")
+    .eq("id", itemId)
+    .single();
+
+  if (itemError || !item) {
+    return err(404, "物品不存在");
+  }
+
+  if (item.status !== "active") {
+    return err(422, "物品当前状态不允许认领");
+  }
+
+  // 2. Verify applicant is not the publisher
+  if (item.publisher_id === callerId) {
+    return err(400, "不能认领自己发布的物品");
+  }
+
+  // 3. Check for duplicate pending claim from same user
+  const { data: existingClaim } = await supabaseAdmin
+    .from("lost_found_claims")
+    .select("id")
+    .eq("item_id", itemId)
+    .eq("claimant_id", callerId)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (existingClaim) {
+    return err(409, "您已提交过认领申请，请等待处理");
+  }
+
+  // 4. Insert claim record
+  const now = new Date().toISOString();
+  const { data: claims, error: insertError } = await supabaseAdmin
+    .from("lost_found_claims")
+    .insert({
+      item_id: itemId,
+      claimant_id: callerId,
+      proof_description: (proofDescription as string).trim(),
+      school_id: item.school_id,
+      status: "pending",
+      created_at: now,
+      updated_at: now,
+    })
+    .select("*");
+
+  if (insertError || !claims || claims.length === 0) {
+    console.error("Failed to insert claim:", insertError?.message);
+    return err(500, "提交认领失败，请稍后重试");
+  }
+
+  const claim = claims[0];
+
+  // 5. Notify publisher
+  try {
+    await supabaseAdmin.from("notifications").insert({
+      user_id: item.publisher_id,
+      type: "lost_found",
+      title: "新的认领申请",
+      body: `有人认领了您发布的"${item.title}"`,
+      ref_type: "lost_found_item",
+      ref_id: itemId,
+    });
+  } catch (notifErr) {
+    console.error("Failed to insert submit_claim notification:", notifErr);
+    // Non-fatal — do not block the submit flow
+  }
+
+  return json({
+    success: true,
+    claim_id: claim.id,
+    status: "pending",
   });
 }
 
@@ -464,22 +592,51 @@ async function handleResolveItem(
         // Credit claimant wallet
         const { data: claimantWallet } = await supabaseAdmin
           .from("wallets")
-          .select("balance")
+          .select("id, balance")
           .eq("user_id", claimantId)
           .single();
 
+        let claimantWalletId: string;
+        let claimantBalanceBefore: number;
+        let claimantBalanceAfter: number;
+
         if (claimantWallet) {
+          claimantWalletId = claimantWallet.id as string;
+          claimantBalanceBefore = claimantWallet.balance as number;
+          claimantBalanceAfter = claimantBalanceBefore + itemRewardInFen;
           await supabaseAdmin
             .from("wallets")
-            .update({
-              balance: (claimantWallet.balance as number) + itemRewardInFen,
-            })
+            .update({ balance: claimantBalanceAfter })
             .eq("user_id", claimantId);
         } else {
           // Create wallet for claimant if not exists
-          await supabaseAdmin
+          const { data: newWallet } = await supabaseAdmin
             .from("wallets")
-            .insert({ user_id: claimantId, balance: itemRewardInFen });
+            .insert({ user_id: claimantId, balance: itemRewardInFen })
+            .select("id, balance")
+            .single();
+          claimantWalletId = newWallet?.id as string;
+          claimantBalanceBefore = 0;
+          claimantBalanceAfter = itemRewardInFen;
+        }
+
+        // Insert wallet_transactions for the reward transfer (claimant income)
+        if (claimantWalletId) {
+          try {
+            await supabaseAdmin.from("wallet_transactions").insert({
+              user_id: claimantId,
+              wallet_id: claimantWalletId,
+              amount: itemRewardInFen,
+              type: "income",
+              balance_before: claimantBalanceBefore,
+              balance_after: claimantBalanceAfter,
+              ref_type: "lost_found_item",
+              ref_id: itemId,
+              description: `失物招领悬赏金到账 ${itemReward} 元`,
+            });
+          } catch (txnErr) {
+            console.error("Failed to insert wallet_transactions for reward transfer:", txnErr);
+          }
         }
       }
     } catch (e) {
@@ -535,17 +692,34 @@ async function handleCloseItem(
     try {
       const { data: publisherWallet } = await supabaseAdmin
         .from("wallets")
-        .select("balance")
+        .select("id, balance")
         .eq("user_id", callerId)
         .single();
 
       if (publisherWallet) {
+        const publisherBalanceBefore = publisherWallet.balance as number;
+        const publisherBalanceAfter = publisherBalanceBefore + itemRewardInFen;
         await supabaseAdmin
           .from("wallets")
-          .update({
-            balance: (publisherWallet.balance as number) + itemRewardInFen,
-          })
+          .update({ balance: publisherBalanceAfter })
           .eq("user_id", callerId);
+
+        // Insert wallet_transactions for the refund
+        try {
+          await supabaseAdmin.from("wallet_transactions").insert({
+            user_id: callerId,
+            wallet_id: publisherWallet.id,
+            amount: itemRewardInFen,
+            type: "refund",
+            balance_before: publisherBalanceBefore,
+            balance_after: publisherBalanceAfter,
+            ref_type: "lost_found_item",
+            ref_id: itemId,
+            description: `关闭物品退还悬赏金 ${itemReward} 元`,
+          });
+        } catch (txnErr) {
+          console.error("Failed to insert wallet_transactions for refund:", txnErr);
+        }
       }
     } catch (e) {
       console.error("Reward refund to publisher failed (non-fatal):", e);
@@ -599,6 +773,10 @@ Deno.serve(async (req: Request) => {
     switch (action) {
       case "publish_item": {
         return await handlePublishItem(callerId, body);
+      }
+
+      case "submit_claim": {
+        return await handleSubmitClaim(callerId, body);
       }
 
       case "approve_claim": {

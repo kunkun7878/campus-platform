@@ -1,6 +1,14 @@
 package com.campus.platform.ui.screen.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,9 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -22,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -36,11 +48,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.campus.platform.ui.viewmodel.profile.RunnerApplyFormState
 import com.campus.platform.ui.viewmodel.profile.RunnerApplyUiState
 import com.campus.platform.ui.viewmodel.profile.RunnerApplyViewModel
@@ -125,8 +140,8 @@ fun RunnerApplyScreen(
                     onStudentIdChange = { viewModel.onStudentIdChange(it) },
                     onPhoneChange = { viewModel.onPhoneChange(it) },
                     onReasonChange = { viewModel.onReasonChange(it) },
-                    onIdCardFrontChange = { viewModel.onIdCardFrontUrlChange(it) },
-                    onIdCardBackChange = { viewModel.onIdCardBackUrlChange(it) },
+                    onIdCardFrontSelected = { viewModel.onIdCardFrontSelected(it) },
+                    onIdCardBackSelected = { viewModel.onIdCardBackSelected(it) },
                     onSubmit = { viewModel.submitApplication() },
                 )
             }
@@ -154,8 +169,8 @@ fun RunnerApplyScreen(
                     onStudentIdChange = { viewModel.onStudentIdChange(it) },
                     onPhoneChange = { viewModel.onPhoneChange(it) },
                     onReasonChange = { viewModel.onReasonChange(it) },
-                    onIdCardFrontChange = { viewModel.onIdCardFrontUrlChange(it) },
-                    onIdCardBackChange = { viewModel.onIdCardBackUrlChange(it) },
+                    onIdCardFrontSelected = { viewModel.onIdCardFrontSelected(it) },
+                    onIdCardBackSelected = { viewModel.onIdCardBackSelected(it) },
                     onSubmit = { viewModel.submitApplication() },
                 )
             }
@@ -316,8 +331,8 @@ private fun NewApplicationForm(
     onStudentIdChange: (String) -> Unit,
     onPhoneChange: (String) -> Unit,
     onReasonChange: (String) -> Unit,
-    onIdCardFrontChange: (String) -> Unit,
-    onIdCardBackChange: (String) -> Unit,
+    onIdCardFrontSelected: (Uri?) -> Unit,
+    onIdCardBackSelected: (Uri?) -> Unit,
     onSubmit: () -> Unit,
 ) {
     Column(
@@ -368,7 +383,7 @@ private fun NewApplicationForm(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // 身份证上传（暂用文本输入）
+        // 身份证上传
         Text(
             text = "身份认证",
             style = MaterialTheme.typography.titleMedium,
@@ -376,24 +391,16 @@ private fun NewApplicationForm(
             color = MaterialTheme.colorScheme.onSurface,
         )
 
-        OutlinedTextField(
-            value = form.idCardFrontUrl,
-            onValueChange = onIdCardFrontChange,
-            label = { Text("身份证正面") },
-            placeholder = { Text("请输入身份证正面图片 URL") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            supportingText = { Text("图片上传即将上线，请先输入图片 URL", style = MaterialTheme.typography.bodySmall) },
+        IdCardImagePicker(
+            label = "身份证正面",
+            uri = form.idCardFrontUri,
+            onImageSelected = onIdCardFrontSelected,
         )
 
-        OutlinedTextField(
-            value = form.idCardBackUrl,
-            onValueChange = onIdCardBackChange,
-            label = { Text("身份证反面") },
-            placeholder = { Text("请输入身份证反面图片 URL") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            supportingText = { Text("图片上传即将上线，请先输入图片 URL", style = MaterialTheme.typography.bodySmall) },
+        IdCardImagePicker(
+            label = "身份证反面",
+            uri = form.idCardBackUri,
+            onImageSelected = onIdCardBackSelected,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -414,6 +421,94 @@ private fun NewApplicationForm(
                 )
             } else {
                 Text("提交申请")
+            }
+        }
+    }
+}
+
+// ── ID Card Image Picker ──────────────────────────────────────────────
+
+@Composable
+private fun IdCardImagePicker(
+    label: String,
+    uri: Uri?,
+    onImageSelected: (Uri?) -> Unit,
+) {
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+    ) { selectedUri ->
+        if (selectedUri != null) onImageSelected(selectedUri)
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (uri != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)),
+            ) {
+                AsyncImage(
+                    model = uri,
+                    contentDescription = label,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(28.dp)
+                        .clip(RoundedCornerShape(bottomStart = 8.dp))
+                        .background(MaterialTheme.colorScheme.error)
+                        .clickable { onImageSelected(null) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "移除",
+                        tint = MaterialTheme.colorScheme.onError,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+                // Tap to re-select
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .clickable { launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "点击更换图片",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                    )
+                }
+            }
+        } else {
+            OutlinedButton(
+                onClick = { launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AddAPhoto,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("上传$label")
             }
         }
     }

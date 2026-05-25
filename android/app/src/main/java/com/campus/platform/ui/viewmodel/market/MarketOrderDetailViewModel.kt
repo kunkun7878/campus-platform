@@ -157,12 +157,21 @@ class MarketOrderDetailViewModel @Inject constructor(
             _actionError.value = null
             try {
                 // Step 1: update order status
+                val originalOrderStatus = current.data.order.status
                 orderRepo.updateOrderStatus(current.data.order.id, "cancelled")
-                // Step 2: restore listing status
-                listingRepo.updateListing(
-                    current.data.listing.id,
-                    mapOf("status" to "active")
-                )
+
+                // Step 2: restore listing status (with rollback on failure)
+                try {
+                    listingRepo.updateListing(
+                        current.data.listing.id,
+                        mapOf("status" to "active")
+                    )
+                } catch (listingError: Exception) {
+                    Log.e(TAG, "取消订单第二步（恢复listing）失败，正在回滚订单状态到 $originalOrderStatus", listingError)
+                    orderRepo.updateOrderStatus(current.data.order.id, originalOrderStatus)
+                    throw listingError
+                }
+
                 // Reload
                 val order = orderRepo.getOrderById(current.data.order.id)
                 if (order != null) {
@@ -190,11 +199,22 @@ class MarketOrderDetailViewModel @Inject constructor(
             _actionInProgress.value = true
             _actionError.value = null
             try {
+                // Step 1: update order status
+                val originalOrderStatus = current.data.order.status
                 orderRepo.updateOrderStatus(current.data.order.id, "completed")
-                listingRepo.updateListing(
-                    current.data.listing.id,
-                    mapOf("status" to MarketListingEntity.STATUS_SOLD)
-                )
+
+                // Step 2: update listing status (with rollback on failure)
+                try {
+                    listingRepo.updateListing(
+                        current.data.listing.id,
+                        mapOf("status" to MarketListingEntity.STATUS_SOLD)
+                    )
+                } catch (listingError: Exception) {
+                    Log.e(TAG, "确认完成第二步（更新listing）失败，正在回滚订单状态到 $originalOrderStatus", listingError)
+                    orderRepo.updateOrderStatus(current.data.order.id, originalOrderStatus)
+                    throw listingError
+                }
+
                 val order = orderRepo.getOrderById(current.data.order.id)
                 if (order != null) {
                     val listing = listingRepo.getListingById(order.listingId)

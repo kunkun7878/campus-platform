@@ -137,6 +137,7 @@ data class OrderTimelineEntity(
     val operatorId: String? = null,
     val schoolId: String,
     val createdAt: String? = null,
+    val updatedAt: String? = null,
 )
 
 @Entity(tableName = "after_sale_timeline")
@@ -148,4 +149,5 @@ data class AfterSaleTimelineEntity(
     val operatorId: String? = null,
     val schoolId: String,
     val createdAt: String? = null,
+    val updatedAt: String? = null,
 )

@@ -3,6 +3,7 @@ package com.campus.platform.data.auth
 import com.campus.platform.data.model.Profile
 import com.campus.platform.push.FcmTokenManager
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.providers.builtin.OTP
@@ -19,7 +20,7 @@ import javax.inject.Singleton
  * Supabase Auth 封装。
  *
  * Phase 2 主认证方式：手机号 + 密码
- * 手机号 + SMS OTP 登录：OTP 发送可用，验证暂待 SDK OtpType 互操作修复后启用。
+ * 手机号 + SMS OTP 登录：通过反射获取 OtpType.Phone 枚举值以绕过 Kotlin-Java 互操作问题。
  */
 @Singleton
 class AuthRepository @Inject constructor(
@@ -59,15 +60,15 @@ class AuthRepository @Inject constructor(
     /**
      * 验证 SMS OTP 令牌并完成登录。
      *
-     * TODO: 当前 SDK 3.1.2 中 verifyPhoneOtp 的 OtpType 参数存在 Kotlin 编译互操作问题。
-     * 待 SDK 更新修复后替换为正确的 API 调用。
-     * 预期调用：supabase.auth.verifyPhoneOtp(type = OtpType.Phone, phone = "...", token = "...")
+     * OtpType.Phone 是 Java 内部枚举，Kotlin 无法直接作为表达式使用
+     * （SDK 3.1.2 的 Kotlin-Java 互操作问题）。通过反射获取枚举值作为替代方案。
+     * SDK 升级到 3.2+ 后可简化为：
+     *   supabase.auth.verifyPhoneOtp(type = OtpType.Phone, phone = "+86$phone", token = token)
      */
     suspend fun verifyOtp(phone: String, token: String) {
-        // TODO: 当前 SDK 3.1.2 中 verifyPhoneOtp 的 OtpType 参数存在 Kotlin 编译互操作问题。
-        // 待 SDK 更新修复后替换为正确的 API 调用。
-        // 预期调用：supabase.auth.verifyPhoneOtp(type = OtpType.Phone, phone = "+86$phone", token = token)
-        throw UnsupportedOperationException("OTP验证暂不可用（SDK互操作问题），请使用密码登录")
+        @Suppress("UNCHECKED_CAST")
+        val phoneType = OtpType.Phone::class.java.enumConstants!!.first()
+        supabase.auth.verifyPhoneOtp(type = phoneType, phone = "+86$phone", token = token)
     }
 
     // ── 邮箱 + 密码 登录/注册 ─────────────────────────────

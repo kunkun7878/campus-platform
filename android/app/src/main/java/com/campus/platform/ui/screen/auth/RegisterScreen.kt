@@ -277,7 +277,7 @@ fun RegisterScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    TextButton(onClick = { /* TODO: 用户协议页 */ }) {
+                    TextButton(onClick = { navController.navigate(CampusRoutes.UserAgreement.route) }) {
                         Text(
                             text = "《用户协议》和《隐私政策》",
                             style = MaterialTheme.typography.bodySmall,

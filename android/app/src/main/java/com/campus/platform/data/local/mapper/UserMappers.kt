@@ -5,6 +5,9 @@ import com.campus.platform.data.local.entity.ProfileEntity
 import com.campus.platform.data.local.entity.UserAddressEntity
 import com.campus.platform.data.local.entity.UserFavoriteEntity
 import com.campus.platform.data.local.entity.WalletEntity
+import com.campus.platform.data.local.entity.InviteCodeEntity
+import com.campus.platform.data.local.entity.InviteRecordEntity
+import com.campus.platform.data.local.entity.WalletTransactionEntity
 import com.campus.platform.data.model.Profile
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -159,6 +162,9 @@ data class NotificationDto(
     val isRead: Boolean,
     val readAt: String?,
     val createdAt: String?,
+    val priority: String = "normal",
+    val pushSent: Boolean = false,
+    val pushSentAt: String? = null,
 )
 
 fun NotificationEntity.toDto(): NotificationDto = NotificationDto(
@@ -172,6 +178,9 @@ fun NotificationEntity.toDto(): NotificationDto = NotificationDto(
     isRead = isRead,
     readAt = readAt,
     createdAt = createdAt,
+    priority = priority,
+    pushSent = pushSent,
+    pushSentAt = pushSentAt,
 )
 
 fun NotificationDto.toEntity(): NotificationEntity = NotificationEntity(
@@ -184,5 +193,110 @@ fun NotificationDto.toEntity(): NotificationEntity = NotificationEntity(
     refId = refId,
     isRead = isRead,
     readAt = readAt,
+    createdAt = createdAt,
+    priority = priority,
+    pushSent = pushSent,
+    pushSentAt = pushSentAt,
+)
+
+// ── WalletTransaction DTO ────────────────────────────────────
+
+data class WalletTransactionDto(
+    val id: String,
+    val userId: String,
+    val type: String,
+    val amount: Int,
+    val balanceAfter: Int,
+    val description: String?,
+    val refType: String?,
+    val refId: String?,
+    val createdAt: String?,
+)
+
+fun WalletTransactionEntity.toDto(): WalletTransactionDto = WalletTransactionDto(
+    id = id,
+    userId = userId,
+    type = type,
+    amount = amount,
+    balanceAfter = balanceAfter,
+    description = description,
+    refType = refType,
+    refId = refId,
+    createdAt = createdAt,
+)
+
+fun WalletTransactionDto.toEntity(): WalletTransactionEntity = WalletTransactionEntity(
+    id = id,
+    userId = userId,
+    type = type,
+    amount = amount,
+    balanceAfter = balanceAfter,
+    description = description,
+    refType = refType,
+    refId = refId,
+    createdAt = createdAt,
+)
+
+// ── InviteCode DTO ───────────────────────────────────────────
+
+data class InviteCodeDto(
+    val id: String,
+    val userId: String,
+    val code: String,
+    val isActive: Boolean,
+    val totalInvites: Int,
+    val createdAt: String?,
+    val updatedAt: String?,
+)
+
+fun InviteCodeEntity.toDto(): InviteCodeDto = InviteCodeDto(
+    id = id,
+    userId = userId,
+    code = code,
+    isActive = isActive,
+    totalInvites = totalInvites,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun InviteCodeDto.toEntity(): InviteCodeEntity = InviteCodeEntity(
+    id = id,
+    userId = userId,
+    code = code,
+    isActive = isActive,
+    totalInvites = totalInvites,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+// ── InviteRecord DTO ─────────────────────────────────────────
+
+data class InviteRecordDto(
+    val id: String,
+    val inviterId: String,
+    val inviteeId: String,
+    val inviteCodeId: String,
+    val rewardStatus: String,
+    val rewardAmount: Int,
+    val createdAt: String?,
+)
+
+fun InviteRecordEntity.toDto(): InviteRecordDto = InviteRecordDto(
+    id = id,
+    inviterId = inviterId,
+    inviteeId = inviteeId,
+    inviteCodeId = inviteCodeId,
+    rewardStatus = rewardStatus,
+    rewardAmount = rewardAmount,
+    createdAt = createdAt,
+)
+
+fun InviteRecordDto.toEntity(): InviteRecordEntity = InviteRecordEntity(
+    id = id,
+    inviterId = inviterId,
+    inviteeId = inviteeId,
+    inviteCodeId = inviteCodeId,
+    rewardStatus = rewardStatus,
+    rewardAmount = rewardAmount,
     createdAt = createdAt,
 )

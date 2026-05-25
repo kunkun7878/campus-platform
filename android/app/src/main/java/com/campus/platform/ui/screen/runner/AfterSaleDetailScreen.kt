@@ -29,11 +29,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -90,9 +95,23 @@ fun AfterSaleDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val showSupplementSheet by viewModel.showSupplementSheet.collectAsStateWithLifecycle()
+    val supplementText by viewModel.supplementText.collectAsStateWithLifecycle()
+    val isSupplementSending by viewModel.isSupplementSending.collectAsStateWithLifecycle()
+    val supplementMessage by viewModel.supplementMessage.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
+    // Supplement message snackbar
+    LaunchedEffect(supplementMessage) {
+        supplementMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearSupplementMessage()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("售后详情") },
@@ -146,13 +165,91 @@ fun AfterSaleDetailScreen(
                     AfterSaleDetailContent(
                         state = state,
                         onSupplement = {
-                            Toast.makeText(context, "补充材料功能即将上线", Toast.LENGTH_SHORT).show()
+                            viewModel.openSupplementSheet()
                         },
                         onContactService = {
                             Toast.makeText(context, "请联系客服处理", Toast.LENGTH_SHORT).show()
                         },
                         viewModel = viewModel,
                     )
+                }
+            }
+        }
+    }
+
+    // ── Supplement Bottom Sheet ─────────────────────────────────
+    if (showSupplementSheet) {
+        SupplementSheet(
+            text = supplementText,
+            isSending = isSupplementSending,
+            onTextChange = { viewModel.onSupplementTextChange(it) },
+            onSubmit = { viewModel.submitSupplement() },
+            onDismiss = { viewModel.closeSupplementSheet() },
+        )
+    }
+}
+
+// ── Supplement Sheet ────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SupplementSheet(
+    text: String,
+    isSending: Boolean,
+    onTextChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    androidx.compose.material3.ModalBottomSheet(
+        onDismissRequest = onDismiss,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = "补充说明",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+
+            OutlinedTextField(
+                value = text,
+                onValueChange = onTextChange,
+                label = { Text("补充内容") },
+                placeholder = { Text("请描述需要补充的信息…") },
+                minLines = 4,
+                maxLines = 8,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("取消")
+                }
+                Button(
+                    onClick = onSubmit,
+                    enabled = !isSending,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    if (isSending) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+                    Text(if (isSending) "提交中…" else "提交")
                 }
             }
         }

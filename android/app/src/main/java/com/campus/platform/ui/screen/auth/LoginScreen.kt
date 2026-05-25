@@ -63,7 +63,7 @@ fun LoginScreen(
     // 登录成功导航
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
-            navController.navigate("post-auth")
+            navController.navigate(CampusRoutes.Splash.route)
         }
     }
 
@@ -204,7 +204,7 @@ fun LoginScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    TextButton(onClick = { /* TODO: 打开协议页面 */ }) {
+                    TextButton(onClick = { navController.navigate(CampusRoutes.UserAgreement.route) }) {
                         Text(
                             text = "《用户协议》",
                             style = MaterialTheme.typography.bodySmall,
@@ -261,7 +261,7 @@ fun LoginScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    TextButton(onClick = { /* TODO: 打开协议页面 */ }) {
+                    TextButton(onClick = { navController.navigate(CampusRoutes.UserAgreement.route) }) {
                         Text(
                             text = "《用户协议》",
                             style = MaterialTheme.typography.bodySmall,

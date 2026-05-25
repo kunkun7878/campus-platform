@@ -61,8 +61,8 @@ fun PublishHubScreen(
     val entries = listOf(
         Entry("发布跑腿", Icons.Filled.DirectionsRun, { it.navigate(CampusRoutes.Publish.route) }, false),
         Entry("发布二手", Icons.Filled.ShoppingCart, { it.navigate(CampusRoutes.MarketPublish.route) }, false),
-        Entry("发布失物", Icons.Filled.Search, {}, true),
-        Entry("发布帖子", Icons.Filled.Edit, {}, true),
+        Entry("发布失物", Icons.Filled.Search, { it.navigate(CampusRoutes.LostPublish.route) }, false),
+        Entry("发布帖子", Icons.Filled.Edit, { it.navigate(CampusRoutes.PostCreate.route) }, false),
     )
 
     Scaffold(

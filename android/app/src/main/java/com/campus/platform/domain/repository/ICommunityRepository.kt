@@ -58,6 +58,18 @@ interface ICommunityRepository {
      */
     suspend fun publishCommentViaModeration(comment: CommunityCommentDto): ModerationResult
 
+    // ── Agent: pending review ──────────────────────────────────
+
+    suspend fun getPendingReviewPosts(schoolId: String): List<CommunityPostDto>
+
+    suspend fun getPendingReviewComments(schoolId: String): List<CommunityCommentDto>
+
+    // ── Agent: moderation actions ──────────────────────────────
+
+    suspend fun updatePostStatus(postId: String, status: String, reason: String? = null)
+
+    suspend fun updateCommentStatus(commentId: String, status: String, reason: String? = null)
+
     // ── Refresh ────────────────────────────────────────────────
 
     suspend fun refreshPosts(schoolId: String)

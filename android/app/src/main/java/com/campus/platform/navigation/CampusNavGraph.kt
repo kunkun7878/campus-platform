@@ -22,10 +22,20 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.campus.platform.ui.component.CampusMainScaffold
 import com.campus.platform.ui.component.ScreenPlaceholder
+import com.campus.platform.ui.screen.agent.AgentDashboardScreen
+import com.campus.platform.ui.screen.agent.AgentReviewListScreen
+import com.campus.platform.ui.screen.agent.AgentReviewDetailScreen
+import com.campus.platform.ui.screen.agent.AgentUserListScreen
+import com.campus.platform.ui.screen.agent.AgentUserDetailScreen
+import com.campus.platform.ui.screen.agent.AgentAnnouncementListScreen
+import com.campus.platform.ui.screen.agent.AgentAnnouncementEditScreen
+import com.campus.platform.ui.screen.agent.AgentRunnerReviewScreen
 import com.campus.platform.ui.screen.auth.AccountDeleteScreen
 import com.campus.platform.ui.screen.auth.LoginScreen
 import com.campus.platform.ui.screen.auth.PasswordResetScreen
+import com.campus.platform.ui.screen.auth.PrivacyPolicyScreen
 import com.campus.platform.ui.screen.auth.RegisterScreen
+import com.campus.platform.ui.screen.auth.UserAgreementScreen
 import com.campus.platform.ui.screen.community.CommunityScreen
 import com.campus.platform.ui.screen.community.GroupChatScreen
 import com.campus.platform.ui.screen.community.PostCreateScreen
@@ -190,6 +200,14 @@ fun CampusNavGraph(
                 AccountDeleteScreen(navController = navController)
             }
 
+            composable(CampusRoutes.UserAgreement.route) {
+                UserAgreementScreen(navController = navController)
+            }
+
+            composable(CampusRoutes.PrivacyPolicy.route) {
+                PrivacyPolicyScreen(navController = navController)
+            }
+
             // ═══════════════════════════════════════════
             // HomeTab — 首页
             // ═══════════════════════════════════════════
@@ -229,7 +247,10 @@ fun CampusNavGraph(
                 ) {
                     OrderDetailScreen(navController = navController)
                 }
-                composable(CampusRoutes.OrderList.route) {
+                composable(
+                    route = CampusRoutes.OrderList.route,
+                    arguments = listOf(navArgument("tab") { type = NavType.StringType; defaultValue = "published" }),
+                ) {
                     OrderListScreen(navController = navController)
                 }
                 composable(
@@ -359,6 +380,41 @@ fun CampusNavGraph(
                     arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
                 ) {
                     MarketOrderDetailScreen(navController = navController)
+                }
+
+                // ── Agent 后台（8 条） ──
+                composable(CampusRoutes.AgentDashboard.route) {
+                    AgentDashboardScreen(navController = navController)
+                }
+                composable(CampusRoutes.AgentReviewList.route) {
+                    AgentReviewListScreen(navController = navController)
+                }
+                composable(
+                    route = CampusRoutes.AgentReviewDetail.route,
+                    arguments = listOf(navArgument("postId") { type = NavType.StringType }),
+                ) {
+                    AgentReviewDetailScreen(navController = navController)
+                }
+                composable(CampusRoutes.AgentUserList.route) {
+                    AgentUserListScreen(navController = navController)
+                }
+                composable(
+                    route = CampusRoutes.AgentUserDetail.route,
+                    arguments = listOf(navArgument("userId") { type = NavType.StringType }),
+                ) {
+                    AgentUserDetailScreen(navController = navController)
+                }
+                composable(CampusRoutes.AgentAnnouncementList.route) {
+                    AgentAnnouncementListScreen(navController = navController)
+                }
+                composable(
+                    route = CampusRoutes.AgentAnnouncementEdit.route,
+                    arguments = listOf(navArgument("announcementId") { type = NavType.StringType }),
+                ) {
+                    AgentAnnouncementEditScreen(navController = navController)
+                }
+                composable(CampusRoutes.AgentRunnerReview.route) {
+                    AgentRunnerReviewScreen(navController = navController)
                 }
             }
         }
