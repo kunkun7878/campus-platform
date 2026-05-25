@@ -1,5 +1,6 @@
 package com.campus.platform.push
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
@@ -76,6 +77,7 @@ class CampusMessagingService : FirebaseMessagingService() {
 
     // ── Notification Display ─────────────────────────────────
 
+    @SuppressLint("MissingPermission")
     private fun showNotification(
         notificationId: String?,
         channelId: String,
