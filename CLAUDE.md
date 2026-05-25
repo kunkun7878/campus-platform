@@ -68,6 +68,7 @@ Skill要求：xxx, xxx
 - Android：Kotlin 2.1.20 + Compose + AGP 8.9.0 + Gradle 8.11.1
 - Skills：54个（`.claude/skills/`），分配见 §7.1.1
 - 阶段：Phase 7 完成 ✅
+- 审查流程：见 [[archive/outputs/REVIEW-FRAMEWORK-全量审查方案v3]]（所有功能审查、问题排查、验收测试均须按此流程执行）
 > 最新状态以 [[campus_status]] 为准
 - GitHub：https://github.com/kunkun7878/campus-platform
 
