@@ -67,8 +67,7 @@ fun WalletScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
-        // TODO: get real userId from auth
-        viewModel.loadWallet("current_user")
+        viewModel.loadWallet()
     }
 
     Scaffold(
@@ -245,11 +244,6 @@ fun WalletScreen(
 @Composable
 private fun TransactionItem(transaction: WalletTransactionDto) {
     val (icon, color, prefix) = when (transaction.type) {
-        WalletTransactionEntity.TYPE_RECHARGE -> Triple(
-            Icons.Default.ArrowDownward,
-            Color(0xFF4CAF50),
-            "+"
-        )
         WalletTransactionEntity.TYPE_INCOME -> Triple(
             Icons.Default.ArrowDownward,
             Color(0xFF4CAF50),
@@ -260,7 +254,7 @@ private fun TransactionItem(transaction: WalletTransactionDto) {
             Color(0xFF4CAF50),
             "+"
         )
-        WalletTransactionEntity.TYPE_WITHDRAW -> Triple(
+        WalletTransactionEntity.TYPE_EXPENSE -> Triple(
             Icons.Default.ArrowUpward,
             Color(0xFFFF5722),
             "-"
@@ -330,10 +324,8 @@ private fun TransactionItem(transaction: WalletTransactionDto) {
 }
 
 private fun transTypeLabel(type: String): String = when (type) {
-    WalletTransactionEntity.TYPE_RECHARGE -> "充值"
-    WalletTransactionEntity.TYPE_WITHDRAW -> "提现"
-    WalletTransactionEntity.TYPE_PAYMENT -> "支付"
-    WalletTransactionEntity.TYPE_REFUND -> "退款"
     WalletTransactionEntity.TYPE_INCOME -> "收入"
+    WalletTransactionEntity.TYPE_EXPENSE -> "支出"
+    WalletTransactionEntity.TYPE_REFUND -> "退款"
     else -> "交易"
 }

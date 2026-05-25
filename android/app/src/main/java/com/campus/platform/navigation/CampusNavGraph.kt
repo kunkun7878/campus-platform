@@ -102,12 +102,22 @@ fun CampusNavGraph(
         currentDestination = currentDestination,
         navController = navController,
         onNavigate = { route ->
-            navController.navigate(route) {
-                popUpTo(navController.graph.startDestinationRoute ?: "splash") {
-                    saveState = true
+            val navBuilder: (String) -> Unit = { targetRoute ->
+                navController.navigate(targetRoute) {
+                    popUpTo(navController.graph.startDestinationRoute ?: "splash") {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
                 }
-                launchSingleTop = true
-                restoreState = true
+            }
+            when (route) {
+                CampusRoutes.Home.route -> navBuilder(CampusRoutes.Home.route)
+                CampusRoutes.PublishHub.route -> navBuilder(CampusRoutes.PublishHub.route)
+                CampusRoutes.Community.route -> navBuilder(CampusRoutes.Community.route)
+                CampusRoutes.Message.route -> navBuilder(CampusRoutes.Message.route)
+                CampusRoutes.Profile.route -> navBuilder(CampusRoutes.Profile.route)
+                else -> navBuilder(route)
             }
         },
     ) { contentModifier ->
@@ -123,11 +133,14 @@ fun CampusNavGraph(
                 val splashViewModel: SplashViewModel = hiltViewModel()
                 val uiState by splashViewModel.uiState.collectAsState()
 
-                LaunchedEffect(uiState) {
-                    if (uiState is SplashViewModel.SplashUiState.Destination) {
-                        val state = uiState as SplashViewModel.SplashUiState.Destination
-                        navController.navigate(state.target.route) {
-                            popUpTo("splash") { inclusive = true }
+                LaunchedEffect(Unit) {
+                    splashViewModel.uiState.collect { uiState ->
+                        if (uiState is SplashViewModel.SplashUiState.Destination) {
+                            when (uiState.target) {
+                                AppStartDestination.Home -> navController.navigate(CampusRoutes.Home.route) { popUpTo("splash") { inclusive = true } }
+                                AppStartDestination.SchoolSelect -> navController.navigate(CampusRoutes.SchoolSelect.route) { popUpTo("splash") { inclusive = true } }
+                                AppStartDestination.Login -> navController.navigate(CampusRoutes.Login.route) { popUpTo("splash") { inclusive = true } }
+                            }
                         }
                     }
                 }
@@ -161,13 +174,13 @@ fun CampusNavGraph(
 
                 LaunchedEffect(Unit) {
                     splashViewModel.determinePostAuthDestination()
-                }
-
-                LaunchedEffect(uiState) {
-                    if (uiState is SplashViewModel.SplashUiState.Destination) {
-                        val state = uiState as SplashViewModel.SplashUiState.Destination
-                        navController.navigate(state.target.route) {
-                            popUpTo("splash") { inclusive = true }
+                    splashViewModel.uiState.collect { uiState ->
+                        if (uiState is SplashViewModel.SplashUiState.Destination) {
+                            when (uiState.target) {
+                                AppStartDestination.Home -> navController.navigate(CampusRoutes.Home.route) { popUpTo("splash") { inclusive = true } }
+                                AppStartDestination.SchoolSelect -> navController.navigate(CampusRoutes.SchoolSelect.route) { popUpTo("splash") { inclusive = true } }
+                                AppStartDestination.Login -> navController.navigate(CampusRoutes.Login.route) { popUpTo("splash") { inclusive = true } }
+                            }
                         }
                     }
                 }

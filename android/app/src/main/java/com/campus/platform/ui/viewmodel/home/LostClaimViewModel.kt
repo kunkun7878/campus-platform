@@ -105,24 +105,40 @@ class LostClaimViewModel @Inject constructor(
                     return@launch
                 }
 
-                val now = java.time.Instant.now().toString()
-                val claimId = UUID.randomUUID().toString()
+                // 1. Try EdgeFn lost-item-lifecycle submit_claim action first
+                val edgeFnSuccess = try {
+                    lostFoundRepository.invokeLostItemLifecycle(
+                        mapOf(
+                            "action" to "submit_claim",
+                            "item_id" to lostId,
+                            "proof_description" to proof.ifBlank { null },
+                        )
+                    )
+                    true
+                } catch (e: Exception) {
+                    Log.e(TAG, "EdgeFn submit_claim failed, falling back to direct insert", e)
+                    false
+                }
 
-                // 1. Create claim via repository (direct PostgREST insert)
-                val claim = LostFoundClaimDto(
-                    id = claimId,
-                    itemId = lostId,
-                    claimantId = userId,
-                    proofDescription = proof.ifBlank { null },
-                    status = "pending",
-                    schoolId = schoolId,
-                    resolvedAt = null,
-                    createdAt = now,
-                    updatedAt = now,
-                )
-                lostFoundRepository.createClaim(claim)
+                // 2. Fallback: direct PostgREST insert if EdgeFn failed (5xx / network error)
+                if (!edgeFnSuccess) {
+                    val now = java.time.Instant.now().toString()
+                    val claimId = UUID.randomUUID().toString()
+                    val claim = LostFoundClaimDto(
+                        id = claimId,
+                        itemId = lostId,
+                        claimantId = userId,
+                        proofDescription = proof.ifBlank { null },
+                        status = "pending",
+                        schoolId = schoolId,
+                        resolvedAt = null,
+                        createdAt = now,
+                        updatedAt = now,
+                    )
+                    lostFoundRepository.createClaim(claim)
+                }
 
-                // 2-3. Auto-create conversation and send greeting (best-effort;
+                // 3-4. Auto-create conversation and send greeting (best-effort;
                 // if conversation setup fails the claim is already submitted).
                 try {
                     val conversation = messageRepository.createConversation(item.publisherId)

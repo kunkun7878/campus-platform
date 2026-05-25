@@ -22,6 +22,7 @@ data class LostFoundItemDto(
     val createdAt: String?,
     val updatedAt: String?,
     val returnedAt: String? = null,
+    val rewardFrozenAt: String? = null,
 )
 
 fun LostFoundItemEntity.toDto(): LostFoundItemDto = LostFoundItemDto(
@@ -41,6 +42,7 @@ fun LostFoundItemEntity.toDto(): LostFoundItemDto = LostFoundItemDto(
     createdAt = createdAt,
     updatedAt = updatedAt,
     returnedAt = returnedAt,
+    rewardFrozenAt = rewardFrozenAt,
 )
 
 fun LostFoundItemDto.toEntity(): LostFoundItemEntity = LostFoundItemEntity(
@@ -60,6 +62,7 @@ fun LostFoundItemDto.toEntity(): LostFoundItemEntity = LostFoundItemEntity(
     createdAt = createdAt,
     updatedAt = updatedAt,
     returnedAt = returnedAt,
+    rewardFrozenAt = rewardFrozenAt,
 )
 
 // ── LostFoundClaim DTO (simple) ─────────────────────────────

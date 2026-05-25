@@ -45,7 +45,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.campus.platform.data.local.entity.InviteRecordEntity
 import com.campus.platform.data.local.mapper.InviteRecordDto
 import com.campus.platform.ui.viewmodel.profile.InviteViewModel
 
@@ -60,8 +59,7 @@ fun InviteScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
-        // TODO: get real userId from auth
-        viewModel.loadInviteData("current_user")
+        viewModel.loadInviteData()
     }
 
     Scaffold(
@@ -154,7 +152,7 @@ fun InviteScreen(
                             ) {
                                 if (uiState.inviteCode == null) {
                                     Button(
-                                        onClick = { viewModel.generateInviteCode("current_user") },
+                                        onClick = { viewModel.generateInviteCode() },
                                     ) {
                                         Text("生成邀请码")
                                     }
@@ -284,13 +282,6 @@ private fun RewardRuleItem(index: String, rule: String) {
 
 @Composable
 private fun InviteRecordItem(record: InviteRecordDto) {
-    val rewardLabel = when (record.rewardStatus) {
-        InviteRecordEntity.REWARD_STATUS_PENDING -> "奖励待发放"
-        InviteRecordEntity.REWARD_STATUS_GRANTED -> "已获得 ¥${record.rewardAmount / 100}"
-        InviteRecordEntity.REWARD_STATUS_EXPIRED -> "已过期"
-        else -> record.rewardStatus
-    }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -321,14 +312,10 @@ private fun InviteRecordItem(record: InviteRecordDto) {
                 }
             }
             Text(
-                text = rewardLabel,
+                text = "已记录",
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
-                color = when (record.rewardStatus) {
-                    InviteRecordEntity.REWARD_STATUS_GRANTED -> MaterialTheme.colorScheme.primary
-                    InviteRecordEntity.REWARD_STATUS_EXPIRED -> MaterialTheme.colorScheme.error
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                },
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

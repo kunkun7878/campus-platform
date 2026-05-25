@@ -211,6 +211,8 @@ data class WalletTransactionDto(
     val refType: String?,
     val refId: String?,
     val createdAt: String?,
+    val walletId: String = "",
+    val balanceBefore: Int = 0,
 )
 
 fun WalletTransactionEntity.toDto(): WalletTransactionDto = WalletTransactionDto(
@@ -223,6 +225,8 @@ fun WalletTransactionEntity.toDto(): WalletTransactionDto = WalletTransactionDto
     refType = refType,
     refId = refId,
     createdAt = createdAt,
+    walletId = walletId,
+    balanceBefore = balanceBefore,
 )
 
 fun WalletTransactionDto.toEntity(): WalletTransactionEntity = WalletTransactionEntity(
@@ -235,6 +239,8 @@ fun WalletTransactionDto.toEntity(): WalletTransactionEntity = WalletTransaction
     refType = refType,
     refId = refId,
     createdAt = createdAt,
+    walletId = walletId,
+    balanceBefore = balanceBefore,
 )
 
 // ── InviteCode DTO ───────────────────────────────────────────
@@ -244,7 +250,9 @@ data class InviteCodeDto(
     val userId: String,
     val code: String,
     val isActive: Boolean,
-    val totalInvites: Int,
+    val usageCount: Int = 0,
+    val maxUses: Int = 100,
+    val expiresAt: String? = null,
     val createdAt: String?,
     val updatedAt: String?,
 )
@@ -254,7 +262,9 @@ fun InviteCodeEntity.toDto(): InviteCodeDto = InviteCodeDto(
     userId = userId,
     code = code,
     isActive = isActive,
-    totalInvites = totalInvites,
+    usageCount = usageCount,
+    maxUses = maxUses,
+    expiresAt = expiresAt,
     createdAt = createdAt,
     updatedAt = updatedAt,
 )
@@ -264,7 +274,9 @@ fun InviteCodeDto.toEntity(): InviteCodeEntity = InviteCodeEntity(
     userId = userId,
     code = code,
     isActive = isActive,
-    totalInvites = totalInvites,
+    usageCount = usageCount,
+    maxUses = maxUses,
+    expiresAt = expiresAt,
     createdAt = createdAt,
     updatedAt = updatedAt,
 )
@@ -275,9 +287,8 @@ data class InviteRecordDto(
     val id: String,
     val inviterId: String,
     val inviteeId: String,
-    val inviteCodeId: String,
-    val rewardStatus: String,
-    val rewardAmount: Int,
+    val code: String,
+    val registeredAt: String? = null,
     val createdAt: String?,
 )
 
@@ -285,9 +296,8 @@ fun InviteRecordEntity.toDto(): InviteRecordDto = InviteRecordDto(
     id = id,
     inviterId = inviterId,
     inviteeId = inviteeId,
-    inviteCodeId = inviteCodeId,
-    rewardStatus = rewardStatus,
-    rewardAmount = rewardAmount,
+    code = code,
+    registeredAt = registeredAt,
     createdAt = createdAt,
 )
 
@@ -295,8 +305,7 @@ fun InviteRecordDto.toEntity(): InviteRecordEntity = InviteRecordEntity(
     id = id,
     inviterId = inviterId,
     inviteeId = inviteeId,
-    inviteCodeId = inviteCodeId,
-    rewardStatus = rewardStatus,
-    rewardAmount = rewardAmount,
+    code = code,
+    registeredAt = registeredAt,
     createdAt = createdAt,
 )

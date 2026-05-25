@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "09102c9e875ad475cd5c4394b1a6589e",
+    "identityHash": "d11300b864bc9b7a7ed26fa7ce3e4d59",
     "entities": [
       {
         "tableName": "schools",
@@ -232,7 +232,7 @@
       },
       {
         "tableName": "wallet_transactions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `type` TEXT NOT NULL, `amount` INTEGER NOT NULL, `balanceAfter` INTEGER NOT NULL, `description` TEXT, `refType` TEXT, `refId` TEXT, `createdAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `type` TEXT NOT NULL, `amount` INTEGER NOT NULL, `balanceAfter` INTEGER NOT NULL, `description` TEXT, `refType` TEXT, `refId` TEXT, `createdAt` TEXT, `walletId` TEXT NOT NULL, `balanceBefore` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -283,6 +283,18 @@
             "fieldPath": "createdAt",
             "columnName": "createdAt",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "walletId",
+            "columnName": "walletId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "balanceBefore",
+            "columnName": "balanceBefore",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -488,7 +500,7 @@
       },
       {
         "tableName": "invite_codes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `code` TEXT NOT NULL, `isActive` INTEGER NOT NULL, `totalInvites` INTEGER NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `code` TEXT NOT NULL, `isActive` INTEGER NOT NULL, `usageCount` INTEGER NOT NULL, `maxUses` INTEGER NOT NULL, `expiresAt` TEXT, `createdAt` TEXT, `updatedAt` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -515,10 +527,21 @@
             "notNull": true
           },
           {
-            "fieldPath": "totalInvites",
-            "columnName": "totalInvites",
+            "fieldPath": "usageCount",
+            "columnName": "usageCount",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "maxUses",
+            "columnName": "maxUses",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAt",
+            "columnName": "expiresAt",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "createdAt",
@@ -540,7 +563,7 @@
       },
       {
         "tableName": "invite_records",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `inviterId` TEXT NOT NULL, `inviteeId` TEXT NOT NULL, `inviteCodeId` TEXT NOT NULL, `rewardStatus` TEXT NOT NULL, `rewardAmount` INTEGER NOT NULL, `createdAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `inviterId` TEXT NOT NULL, `inviteeId` TEXT NOT NULL, `code` TEXT NOT NULL, `registeredAt` TEXT, `createdAt` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -561,22 +584,15 @@
             "notNull": true
           },
           {
-            "fieldPath": "inviteCodeId",
-            "columnName": "inviteCodeId",
+            "fieldPath": "code",
+            "columnName": "code",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "rewardStatus",
-            "columnName": "rewardStatus",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "rewardAmount",
-            "columnName": "rewardAmount",
-            "affinity": "INTEGER",
-            "notNull": true
+            "fieldPath": "registeredAt",
+            "columnName": "registeredAt",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "createdAt",
@@ -1632,7 +1648,7 @@
       },
       {
         "tableName": "lost_found_items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `publisherId` TEXT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT, `images` TEXT NOT NULL, `location` TEXT, `lostDate` TEXT, `category` TEXT NOT NULL, `status` TEXT NOT NULL, `schoolId` TEXT NOT NULL, `reward` INTEGER NOT NULL, `contact` TEXT NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, `returnedAt` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `publisherId` TEXT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT, `images` TEXT NOT NULL, `location` TEXT, `lostDate` TEXT, `category` TEXT NOT NULL, `status` TEXT NOT NULL, `schoolId` TEXT NOT NULL, `reward` INTEGER NOT NULL, `contact` TEXT NOT NULL, `createdAt` TEXT, `updatedAt` TEXT, `returnedAt` TEXT, `rewardFrozenAt` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -1722,6 +1738,11 @@
           {
             "fieldPath": "returnedAt",
             "columnName": "returnedAt",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "rewardFrozenAt",
+            "columnName": "rewardFrozenAt",
             "affinity": "TEXT"
           }
         ],
@@ -2198,7 +2219,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '09102c9e875ad475cd5c4394b1a6589e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd11300b864bc9b7a7ed26fa7ce3e4d59')"
     ]
   }
 }

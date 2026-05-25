@@ -1,10 +1,12 @@
 package com.campus.platform.ui.viewmodel.home
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.navigation.toRoute
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.local.mapper.AnnouncementDto
 import com.campus.platform.domain.repository.IMiscRepository
+import com.campus.platform.navigation.AnnouncementDetail
 import com.campus.platform.ui.viewmodel.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +21,7 @@ class AnnouncementDetailViewModel @Inject constructor(
     private val miscRepository: IMiscRepository,
 ) : ViewModel() {
 
-    private val announcementId: String = savedStateHandle.get<String>("announcementId") ?: ""
+    private val announcementId: String = savedStateHandle.toRoute<AnnouncementDetail>().announcementId
 
     private val _uiState = MutableStateFlow<UiState<AnnouncementDto>>(UiState.Loading)
     val uiState: StateFlow<UiState<AnnouncementDto>> = _uiState.asStateFlow()

@@ -2,6 +2,7 @@ package com.campus.platform.ui.viewmodel.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.campus.platform.data.auth.AuthRepository
 import com.campus.platform.data.local.mapper.UserAddressDto
 import com.campus.platform.domain.repository.IAddressRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddressManageViewModel @Inject constructor(
     private val addressRepository: IAddressRepository,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddressManageUiState())
@@ -23,8 +25,9 @@ class AddressManageViewModel @Inject constructor(
     private val _formState = MutableStateFlow(AddressFormState())
     val formState: StateFlow<AddressFormState> = _formState.asStateFlow()
 
-    fun loadAddresses(userId: String) {
+    fun loadAddresses() {
         viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
             _uiState.value = _uiState.value.copy(isLoading = true)
             addressRepository.getAddresses(userId).collect { addresses ->
                 _uiState.value = _uiState.value.copy(
@@ -75,7 +78,7 @@ class AddressManageViewModel @Inject constructor(
         _formState.value = _formState.value.copy(isDefault = value)
     }
 
-    fun saveAddress(userId: String) {
+    fun saveAddress() {
         val form = _formState.value
         if (form.label.isBlank() || form.contactName.isBlank() || form.contactPhone.isBlank() || form.addressText.isBlank()) {
             _formState.value = _formState.value.copy(error = "请填写完整信息")
@@ -83,6 +86,7 @@ class AddressManageViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
             try {
                 val editing = _uiState.value.editingAddress
                 if (editing != null) {

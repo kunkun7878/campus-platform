@@ -2,6 +2,7 @@ package com.campus.platform.ui.viewmodel.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.campus.platform.data.auth.AuthRepository
 import com.campus.platform.data.local.mapper.InviteCodeDto
 import com.campus.platform.data.local.mapper.InviteRecordDto
 import com.campus.platform.domain.repository.IInviteRepository
@@ -15,13 +16,15 @@ import javax.inject.Inject
 @HiltViewModel
 class InviteViewModel @Inject constructor(
     private val inviteRepository: IInviteRepository,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InviteUiState())
     val uiState: StateFlow<InviteUiState> = _uiState.asStateFlow()
 
-    fun loadInviteData(userId: String) {
+    fun loadInviteData() {
         viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
             try {
                 inviteRepository.getInviteCode(userId).collect { code ->
                     _uiState.value = _uiState.value.copy(
@@ -38,6 +41,7 @@ class InviteViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
             try {
                 inviteRepository.getInviteRecords(userId).collect { records ->
                     _uiState.value = _uiState.value.copy(inviteRecords = records)
@@ -48,6 +52,7 @@ class InviteViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
             try {
                 inviteRepository.getInviteCount(userId).collect { count ->
                     _uiState.value = _uiState.value.copy(inviteCount = count)
@@ -58,8 +63,9 @@ class InviteViewModel @Inject constructor(
         }
     }
 
-    fun generateInviteCode(userId: String) {
+    fun generateInviteCode() {
         viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
             try {
                 inviteRepository.generateInviteCode(userId)
             } catch (e: Exception) {

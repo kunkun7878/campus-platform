@@ -28,7 +28,7 @@ class InviteRepository @Inject constructor(
             userId = userId,
             code = generateRandomCode(),
             isActive = true,
-            totalInvites = 0,
+            usageCount = 0,
             createdAt = null,
             updatedAt = null,
         )

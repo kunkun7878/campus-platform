@@ -39,11 +39,12 @@ class AhoCorasick {
   private root: ACNode = new ACNode();
   private built = false;
 
-  /** 添加一个模式串 */
+  /** 添加一个模式串 (H5: lowercase for case-insensitive matching) */
   addPattern(pattern: string): void {
     if (!pattern || pattern.length === 0) return;
+    const lower = pattern.toLowerCase();
     let node = this.root;
-    for (const ch of pattern) {
+    for (const ch of lower) {
       if (!node.children.has(ch)) {
         node.children.set(ch, new ACNode());
       }

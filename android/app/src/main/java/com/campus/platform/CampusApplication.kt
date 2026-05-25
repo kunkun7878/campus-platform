@@ -1,6 +1,7 @@
 package com.campus.platform
 
 import android.app.Application
+import android.util.Log
 import com.campus.platform.push.ForegroundTracker
 import com.campus.platform.push.NotificationChannelSetup
 import dagger.hilt.android.HiltAndroidApp
@@ -14,11 +15,14 @@ class CampusApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        try {
+            // Create FCM notification channels (API 26+)
+            channelSetup.createChannels(this)
 
-        // Create FCM notification channels (API 26+)
-        channelSetup.createChannels(this)
-
-        // Track foreground/background state for FCM notification suppression
-        registerActivityLifecycleCallbacks(foregroundTracker.callbacks)
+            // Track foreground/background state for FCM notification suppression
+            registerActivityLifecycleCallbacks(foregroundTracker.callbacks)
+        } catch (e: Exception) {
+            Log.e("CampusApp", "Application init failed", e)
+        }
     }
 }

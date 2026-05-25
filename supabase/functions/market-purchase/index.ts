@@ -147,11 +147,12 @@ async function handlePurchase(
 
   if (updateError) {
     console.error("Failed to update listing status:", updateError.message);
-    // 回滚：取消已创建的订单
+    // 回滚：取消已创建的订单（乐观锁：仅取消 pending 订单）
     await supabaseAdmin
       .from("market_orders")
       .update({ status: "cancelled" })
-      .eq("id", order.id);
+      .eq("id", order.id)
+      .eq("status", "pending");
     return err(500, "下单失败，请稍后重试");
   }
 
@@ -160,11 +161,12 @@ async function handlePurchase(
     console.warn(
       `Optimistic lock failed for listing ${listingId}: status no longer active`
     );
-    // 回滚：取消已创建的订单
+    // 回滚：取消已创建的订单（乐观锁：仅取消 pending 订单）
     await supabaseAdmin
       .from("market_orders")
       .update({ status: "cancelled" })
-      .eq("id", order.id);
+      .eq("id", order.id)
+      .eq("status", "pending");
     return err(422, "该商品已被其他用户预订");
   }
 

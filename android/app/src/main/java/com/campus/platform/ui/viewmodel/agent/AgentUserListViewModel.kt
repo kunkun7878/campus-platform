@@ -5,9 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.auth.AuthRepository
 import com.campus.platform.data.model.Profile
+import com.campus.platform.domain.repository.IUserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +28,7 @@ data class AgentUserListState(
 @HiltViewModel
 class AgentUserListViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val supabase: SupabaseClient,
+    private val userRepository: IUserRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AgentUserListState())
@@ -51,10 +50,7 @@ class AgentUserListViewModel @Inject constructor(
                 }
 
                 val users = try {
-                    supabase.postgrest
-                        .from("profiles")
-                        .select { filter { eq("school_id", schoolId) } }
-                        .decodeList<Profile>()
+                    userRepository.getUsersBySchool(schoolId)
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {

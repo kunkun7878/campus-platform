@@ -55,10 +55,10 @@ async function extractCallerId(req: Request): Promise<string> {
 async function isAgent(userId: string): Promise<boolean> {
   const { data } = await supabaseAdmin
     .from("profiles")
-    .select("role")
+    .select("is_agent")
     .eq("id", userId)
     .single();
-  return data?.role === "agent";
+  return data?.is_agent === true;
 }
 
 // ── Constants ────────────────────────────────────────────────────
@@ -199,17 +199,6 @@ async function handleVerify(
     return err(400, "不能使用自己的邀请码");
   }
 
-  // 3. Check invitee hasn't been invited before (one invite per user)
-  const { data: existingRecord } = await supabaseAdmin
-    .from("invite_records")
-    .select("id")
-    .eq("invitee_id", inviteeId)
-    .maybeSingle();
-
-  if (existingRecord) {
-    return err(409, "该用户已使用过邀请码");
-  }
-
   // B2 fix: reward_amount 从 invite_codes 表读取，不接受调用方传入
   const rewardAmount = typeof inviteCode.reward_amount === "number"
     ? Math.max(0, Math.floor(inviteCode.reward_amount as number))
@@ -217,6 +206,7 @@ async function handleVerify(
   const rewardInFen = rewardAmount * FEN_MULTIPLIER;
 
   // B3 fix: 先 INSERT invite_records，成功后再 UPDATE usage_count
+  // H3 TOCTOU fix: rely on DB UNIQUE constraint (invitee_id) instead of pre-check
   // 4. Insert invite record BEFORE incrementing usage_count
   const { data: inviteRecord, error: recordError } = await supabaseAdmin
     .from("invite_records")
@@ -231,6 +221,10 @@ async function handleVerify(
 
   if (recordError) {
     console.error("Failed to insert invite record:", recordError.message);
+    // H3: 23505 = unique_violation — invitee already used a code (TOCTOU safe)
+    if (recordError.code === "23505") {
+      return err(409, "该用户已使用过邀请码");
+    }
     return err(500, "记录邀请关系失败，请稍后重试");
   }
 
@@ -357,13 +351,8 @@ Deno.serve(async (req: Request) => {
       }
 
       case "verify": {
-        // verify is called by registration flow (service_role),
-        // but we still accept authenticated users
-        try {
-          await extractCallerId(req);
-        } catch {
-          // If no auth header, allow — the caller may use service_role key
-        }
+        // H3: Authentication is mandatory for verify — extractCallerId failure returns 401
+        await extractCallerId(req);
         return await handleVerify(body);
       }
 

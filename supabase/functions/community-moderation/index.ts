@@ -7,6 +7,7 @@
 //   publish_post    — 发布帖子 (审核→入库)
 //   update_post     — 编辑帖子 (审核→更新)
 //   publish_comment — 发布评论 (审核→入库)
+//   review          — Agent 审核 (改状态+写日志+通知作者)
 //
 // 三级风险判定:
 //   block  — 命中硬黑名单 → 不存库, 直接返回拒绝原因 + 命中词
@@ -603,6 +604,127 @@ async function handleUpdatePost(
   );
 }
 
+// ── review ──────────────────────────────────────────────────────
+
+interface ReviewInput {
+  target_type: "post" | "comment";
+  target_id: string;
+  status: string;
+  reason?: string;
+}
+
+function validateReview(body: Record<string, unknown>): ReviewInput {
+  const target_type = body.target_type as string;
+  const target_id = body.target_id as string;
+  const status = body.status as string;
+
+  if (!target_type || !["post", "comment"].includes(target_type)) {
+    throw { status: 400, message: "无效的 target_type, 必须是 post 或 comment" };
+  }
+  if (!target_id) {
+    throw { status: 400, message: "缺少必要参数: target_id" };
+  }
+  if (!status) {
+    throw { status: 400, message: "缺少必要参数: status" };
+  }
+
+  return {
+    target_type: target_type as "post" | "comment",
+    target_id,
+    status,
+    reason: body.reason as string | undefined,
+  };
+}
+
+async function handleReview(
+  callerId: string,
+  body: Record<string, unknown>
+): Promise<Response> {
+  const input = validateReview(body);
+
+  // 1. Verify caller is Agent
+  const { data: reviewer } = await supabaseAdmin
+    .from("profiles")
+    .select("is_agent, school_id")
+    .eq("id", callerId)
+    .single();
+
+  if (!reviewer || reviewer.is_agent !== true) {
+    return err(403, "仅管理员可执行审核操作");
+  }
+
+  // 2. Look up the target to get author_id and school_id
+  const tableName =
+    input.target_type === "post" ? "community_posts" : "community_comments";
+  const { data: target, error: targetError } = await supabaseAdmin
+    .from(tableName)
+    .select("*")
+    .eq("id", input.target_id)
+    .single();
+
+  if (targetError || !target) {
+    return err(404, `${input.target_type === "post" ? "帖子" : "评论"}不存在`);
+  }
+
+  // 3. UPDATE target status + review_reason
+  const updateData: Record<string, unknown> = {
+    status: input.status,
+    review_reason: input.reason || null,
+  };
+  const { error: updateError } = await supabaseAdmin
+    .from(tableName)
+    .update(updateData)
+    .eq("id", input.target_id);
+
+  if (updateError) {
+    console.error("Review update failed:", updateError.message);
+    return err(500, "审核更新失败，请稍后重试");
+  }
+
+  // 4. INSERT moderation_logs
+  const refType =
+    input.target_type === "post" ? "community_post" : "community_comment";
+  await writeModerationLog({
+    ref_type: refType,
+    ref_id: input.target_id,
+    action: input.status === "published" ? "approve" : "hide",
+    reason: input.reason || `管理员审核: status=${input.status}`,
+    operator_id: callerId,
+    school_id: target.school_id,
+  });
+
+  // 5. Send notification to the author
+  try {
+    const statusLabel =
+      input.status === "published"
+        ? "已通过"
+        : input.status === "deleted"
+        ? "已删除"
+        : input.status;
+    await supabaseAdmin.from("notifications").insert({
+      user_id: target.author_id,
+      type: "community",
+      title: `您的${input.target_type === "post" ? "帖子" : "评论"}审核结果`,
+      body: `管理员已将您的${input.target_type === "post" ? "帖子" : "评论"}状态更新为: ${statusLabel}${
+        input.reason ? `，理由: ${input.reason}` : ""
+      }`,
+      ref_type: refType,
+      ref_id: input.target_id,
+    });
+  } catch (notifErr) {
+    console.error("Review notification failed:", notifErr);
+    // Non-fatal — do not block the review flow
+  }
+
+  // 6. Return success
+  return json({
+    success: true,
+    target_type: input.target_type,
+    target_id: input.target_id,
+    status: input.status,
+  });
+}
+
 // ── Main handler ─────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
@@ -634,6 +756,9 @@ Deno.serve(async (req: Request) => {
 
       case "update_post":
         return await handleUpdatePost(callerId, body);
+
+      case "review":
+        return await handleReview(callerId, body);
 
       default:
         return err(400, "不支持的操作类型: " + action);

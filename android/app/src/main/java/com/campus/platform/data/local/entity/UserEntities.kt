@@ -69,11 +69,13 @@ data class WalletTransactionEntity(
     val refType: String? = null,
     val refId: String? = null,
     val createdAt: String? = null,
+    val walletId: String = "",
+    val balanceBefore: Int = 0,
 ) {
     companion object {
-        const val TYPE_RECHARGE = "recharge"
-        const val TYPE_WITHDRAW = "withdraw"
-        const val TYPE_PAYMENT = "payment"
+        const val TYPE_EXPENSE = "expense"
+        const val TYPE_FREEZE = "freeze"
+        const val TYPE_UNFREEZE = "unfreeze"
         const val TYPE_REFUND = "refund"
         const val TYPE_INCOME = "income"
     }
@@ -129,7 +131,9 @@ data class InviteCodeEntity(
     val userId: String,
     val code: String,
     val isActive: Boolean = true,
-    val totalInvites: Int = 0,
+    val usageCount: Int = 0,
+    val maxUses: Int = 100,
+    val expiresAt: String? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null,
 )
@@ -139,14 +143,7 @@ data class InviteRecordEntity(
     @PrimaryKey val id: String,
     val inviterId: String,
     val inviteeId: String,
-    val inviteCodeId: String,
-    val rewardStatus: String = REWARD_STATUS_PENDING,
-    val rewardAmount: Int = 0,
+    val code: String,
+    val registeredAt: String? = null,
     val createdAt: String? = null,
-) {
-    companion object {
-        const val REWARD_STATUS_PENDING = "pending"
-        const val REWARD_STATUS_GRANTED = "granted"
-        const val REWARD_STATUS_EXPIRED = "expired"
-    }
-}
+)

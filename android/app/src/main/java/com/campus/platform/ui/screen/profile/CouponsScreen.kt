@@ -57,8 +57,7 @@ fun CouponsScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
-        // TODO: get real userId and schoolId from auth
-        viewModel.loadCoupons("current_user", "school_id")
+        viewModel.loadCoupons()
     }
 
     Scaffold(

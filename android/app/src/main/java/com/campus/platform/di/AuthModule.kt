@@ -2,6 +2,7 @@ package com.campus.platform.di
 
 import com.campus.platform.BuildConfig
 import com.campus.platform.data.auth.AuthRepository
+import android.util.Log
 import com.campus.platform.data.school.SchoolRepository
 import com.campus.platform.push.FcmTokenManager
 import dagger.Module
@@ -24,15 +25,20 @@ object AuthModule {
     @Provides
     @Singleton
     fun provideSupabaseClient(): SupabaseClient {
-        return createSupabaseClient(
-            supabaseUrl = BuildConfig.SUPABASE_URL,
-            supabaseKey = BuildConfig.SUPABASE_ANON_KEY,
-        ) {
-            install(Auth)
-            install(Postgrest)
-            install(Realtime)
-            install(Storage)
-            install(Functions)
+        return try {
+            createSupabaseClient(
+                supabaseUrl = BuildConfig.SUPABASE_URL,
+                supabaseKey = BuildConfig.SUPABASE_ANON_KEY,
+            ) {
+                install(Auth)
+                install(Postgrest)
+                install(Realtime)
+                install(Storage)
+                install(Functions)
+            }
+        } catch (e: Exception) {
+            Log.e("AuthModule", "SupabaseClient init failed", e)
+            throw e
         }
     }
 

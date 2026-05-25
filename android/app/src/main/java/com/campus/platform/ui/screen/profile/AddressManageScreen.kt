@@ -70,8 +70,7 @@ fun AddressManageScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
-        // TODO: get real userId from auth
-        viewModel.loadAddresses("current_user")
+        viewModel.loadAddresses()
     }
 
     LaunchedEffect(uiState.error) {
@@ -164,7 +163,7 @@ fun AddressManageScreen(
                 onContactPhoneChange = { viewModel.onContactPhoneChange(it) },
                 onAddressChange = { viewModel.onAddressChange(it) },
                 onDefaultChange = { viewModel.onDefaultChange(it) },
-                onSave = { viewModel.saveAddress("current_user") },
+                onSave = { viewModel.saveAddress() },
                 onDismiss = { viewModel.dismissDialog() },
             )
         }

@@ -235,6 +235,7 @@ async function sendFcmMessage(
       "UNREGISTERED",
       "INVALID_ARGUMENT",
       "SENDER_ID_MISMATCH",
+      "NOT_FOUND",
     ];
     if (errorCode && unrecoverable.includes(errorCode)) {
       console.warn(

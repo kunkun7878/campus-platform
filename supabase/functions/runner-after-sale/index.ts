@@ -351,6 +351,20 @@ async function handleComplete(
     console.error("Failed to insert after-sale timeline:", timelineError.message);
   }
 
+  // H4: Restore the associated order status from "after_sale" to "completed"
+  try {
+    const { error: orderUpdateErr } = await supabaseAdmin
+      .from("runner_orders")
+      .update({ status: "completed", updated_at: new Date().toISOString() })
+      .eq("id", afterSale.order_id as string)
+      .eq("status", "after_sale");
+    if (orderUpdateErr) {
+      console.error("Failed to restore order status to completed:", orderUpdateErr.message);
+    }
+  } catch (e) {
+    console.error("Failed to restore order status (non-fatal):", e);
+  }
+
   return json({ success: true, after_sale_id: afterSaleId, status: "completed" });
 }
 

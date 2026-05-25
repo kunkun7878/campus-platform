@@ -569,79 +569,87 @@ async function handleResolveItem(
     }
   }
 
-  // 3. Atomic: update item → closed
+  // 3. Transfer reward to claimant wallet FIRST (if reward > 0 and claimant found),
+  //    with optimistic lock. If wallet update fails (409), item stays unchanged.
+  const itemReward = item.reward as number;
+  const itemRewardInFen = itemReward * FEN_MULTIPLIER;
+  let rewardTransferred = false;
+  let rewardClaimantId: string | null = null;
+  let claimantWalletId: string | null = null;
+  let claimantBalanceBefore = 0;
+  let claimantBalanceAfter = 0;
+
+  if (itemReward > 0 && targetClaimId) {
+    // Find the approved claimant
+    const { data: targetClaim } = await supabaseAdmin
+      .from("lost_found_claims")
+      .select("claimant_id")
+      .eq("id", targetClaimId)
+      .single();
+
+    if (targetClaim) {
+      rewardClaimantId = targetClaim.claimant_id as string;
+
+      // Credit claimant wallet
+      const { data: claimantWallet } = await supabaseAdmin
+        .from("wallets")
+        .select("id, balance")
+        .eq("user_id", rewardClaimantId)
+        .single();
+
+      if (claimantWallet) {
+        claimantWalletId = claimantWallet.id as string;
+        claimantBalanceBefore = claimantWallet.balance as number;
+        claimantBalanceAfter = claimantBalanceBefore + itemRewardInFen;
+        const { error: walletUpdateErr, count: walletUpdateCount } = await supabaseAdmin
+          .from("wallets")
+          .update({ balance: claimantBalanceAfter })
+          .eq("user_id", rewardClaimantId)
+          .eq("balance", claimantBalanceBefore);
+        if (walletUpdateErr || walletUpdateCount === 0) {
+          console.error(
+            "Wallet balance update conflict for claimant:",
+            walletUpdateErr?.message ?? `concurrent modification (count=${walletUpdateCount})`
+          );
+          return err(409, "钱包余额已被修改，请重试");
+        }
+        rewardTransferred = true;
+      } else {
+        // Create wallet for claimant if not exists
+        const { data: newWallet } = await supabaseAdmin
+          .from("wallets")
+          .insert({ user_id: rewardClaimantId, balance: itemRewardInFen })
+          .select("id, balance")
+          .single();
+        claimantWalletId = newWallet?.id as string;
+        claimantBalanceBefore = 0;
+        claimantBalanceAfter = itemRewardInFen;
+        rewardTransferred = true;
+      }
+    }
+  }
+
+  // 4. Atomic: update item → closed
   await atomicUpdateItem(itemId, ["active", "claimed"], {
     status: "closed",
   });
 
-  // 4. Transfer reward to claimant (if reward > 0 and claimant found)
-  const itemReward = item.reward as number;
-  const itemRewardInFen = itemReward * FEN_MULTIPLIER;
-  if (itemReward > 0 && targetClaimId) {
+  // 4a. Insert wallet_transactions for the reward transfer (non-fatal)
+  if (rewardTransferred && claimantWalletId && rewardClaimantId) {
     try {
-      // Find the approved claimant
-      const { data: targetClaim } = await supabaseAdmin
-        .from("lost_found_claims")
-        .select("claimant_id")
-        .eq("id", targetClaimId)
-        .single();
-
-      if (targetClaim) {
-        const claimantId = targetClaim.claimant_id as string;
-
-        // Credit claimant wallet
-        const { data: claimantWallet } = await supabaseAdmin
-          .from("wallets")
-          .select("id, balance")
-          .eq("user_id", claimantId)
-          .single();
-
-        let claimantWalletId: string;
-        let claimantBalanceBefore: number;
-        let claimantBalanceAfter: number;
-
-        if (claimantWallet) {
-          claimantWalletId = claimantWallet.id as string;
-          claimantBalanceBefore = claimantWallet.balance as number;
-          claimantBalanceAfter = claimantBalanceBefore + itemRewardInFen;
-          await supabaseAdmin
-            .from("wallets")
-            .update({ balance: claimantBalanceAfter })
-            .eq("user_id", claimantId);
-        } else {
-          // Create wallet for claimant if not exists
-          const { data: newWallet } = await supabaseAdmin
-            .from("wallets")
-            .insert({ user_id: claimantId, balance: itemRewardInFen })
-            .select("id, balance")
-            .single();
-          claimantWalletId = newWallet?.id as string;
-          claimantBalanceBefore = 0;
-          claimantBalanceAfter = itemRewardInFen;
-        }
-
-        // Insert wallet_transactions for the reward transfer (claimant income)
-        if (claimantWalletId) {
-          try {
-            await supabaseAdmin.from("wallet_transactions").insert({
-              user_id: claimantId,
-              wallet_id: claimantWalletId,
-              amount: itemRewardInFen,
-              type: "income",
-              balance_before: claimantBalanceBefore,
-              balance_after: claimantBalanceAfter,
-              ref_type: "lost_found_item",
-              ref_id: itemId,
-              description: `失物招领悬赏金到账 ${itemReward} 元`,
-            });
-          } catch (txnErr) {
-            console.error("Failed to insert wallet_transactions for reward transfer:", txnErr);
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Reward transfer to claimant failed (non-fatal):", e);
-      // Non-fatal — item is already closed
+      await supabaseAdmin.from("wallet_transactions").insert({
+        user_id: rewardClaimantId,
+        wallet_id: claimantWalletId,
+        amount: itemRewardInFen,
+        type: "income",
+        balance_before: claimantBalanceBefore,
+        balance_after: claimantBalanceAfter,
+        ref_type: "lost_found_item",
+        ref_id: itemId,
+        description: `失物招领悬赏金到账 ${itemReward} 元`,
+      });
+    } catch (txnErr) {
+      console.error("Failed to insert wallet_transactions for reward transfer:", txnErr);
     }
   }
 
@@ -680,49 +688,61 @@ async function handleCloseItem(
     return err(422, "物品已关闭");
   }
 
-  // 2. Atomic: update item → closed
+  // 2. Refund reward to publisher FIRST (if reward > 0), with optimistic lock.
+  //    If wallet update fails (409), item status stays unchanged.
+  const itemReward = item.reward as number;
+  const itemRewardInFen = itemReward * FEN_MULTIPLIER;
+  let publisherWalletId: string | null = null;
+  let publisherBalanceBefore = 0;
+  let publisherBalanceAfter = 0;
+
+  if (itemReward > 0) {
+    const { data: publisherWallet } = await supabaseAdmin
+      .from("wallets")
+      .select("id, balance")
+      .eq("user_id", callerId)
+      .single();
+
+    if (publisherWallet) {
+      publisherWalletId = publisherWallet.id as string;
+      publisherBalanceBefore = publisherWallet.balance as number;
+      publisherBalanceAfter = publisherBalanceBefore + itemRewardInFen;
+      const { error: walletUpdateErr, count: walletUpdateCount } = await supabaseAdmin
+        .from("wallets")
+        .update({ balance: publisherBalanceAfter })
+        .eq("user_id", callerId)
+        .eq("balance", publisherBalanceBefore);
+      if (walletUpdateErr || walletUpdateCount === 0) {
+        console.error(
+          "Wallet balance update conflict for publisher:",
+          walletUpdateErr?.message ?? `concurrent modification (count=${walletUpdateCount})`
+        );
+        return err(409, "钱包余额已被修改，请重试");
+      }
+    }
+  }
+
+  // 3. Atomic: update item → closed
   await atomicUpdateItem(itemId, ["active", "claimed"], {
     status: "closed",
   });
 
-  // 3. Refund reward to publisher (if reward > 0)
-  const itemReward = item.reward as number;
-  const itemRewardInFen = itemReward * FEN_MULTIPLIER;
-  if (itemReward > 0) {
+  // 3a. Insert wallet_transactions for the refund (non-fatal)
+  if (itemReward > 0 && publisherWalletId) {
     try {
-      const { data: publisherWallet } = await supabaseAdmin
-        .from("wallets")
-        .select("id, balance")
-        .eq("user_id", callerId)
-        .single();
-
-      if (publisherWallet) {
-        const publisherBalanceBefore = publisherWallet.balance as number;
-        const publisherBalanceAfter = publisherBalanceBefore + itemRewardInFen;
-        await supabaseAdmin
-          .from("wallets")
-          .update({ balance: publisherBalanceAfter })
-          .eq("user_id", callerId);
-
-        // Insert wallet_transactions for the refund
-        try {
-          await supabaseAdmin.from("wallet_transactions").insert({
-            user_id: callerId,
-            wallet_id: publisherWallet.id,
-            amount: itemRewardInFen,
-            type: "refund",
-            balance_before: publisherBalanceBefore,
-            balance_after: publisherBalanceAfter,
-            ref_type: "lost_found_item",
-            ref_id: itemId,
-            description: `关闭物品退还悬赏金 ${itemReward} 元`,
-          });
-        } catch (txnErr) {
-          console.error("Failed to insert wallet_transactions for refund:", txnErr);
-        }
-      }
-    } catch (e) {
-      console.error("Reward refund to publisher failed (non-fatal):", e);
+      await supabaseAdmin.from("wallet_transactions").insert({
+        user_id: callerId,
+        wallet_id: publisherWalletId,
+        amount: itemRewardInFen,
+        type: "refund",
+        balance_before: publisherBalanceBefore,
+        balance_after: publisherBalanceAfter,
+        ref_type: "lost_found_item",
+        ref_id: itemId,
+        description: `关闭物品退还悬赏金 ${itemReward} 元`,
+      });
+    } catch (txnErr) {
+      console.error("Failed to insert wallet_transactions for refund:", txnErr);
     }
   }
 

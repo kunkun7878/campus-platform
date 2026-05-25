@@ -21,6 +21,7 @@ data class LostFoundItemEntity(
     val createdAt: String? = null,
     val updatedAt: String? = null,
     val returnedAt: String? = null,
+    val rewardFrozenAt: String? = null,
 ) {
     companion object {
         const val TYPE_LOST = "lost"

@@ -123,7 +123,8 @@ async function processExpiredItem(item: ExpiredItem): Promise<boolean> {
     const { error: refundError } = await supabaseAdmin
       .from("wallets")
       .update({ balance: balanceAfter })
-      .eq("user_id", ownedItem.publisher_id);
+      .eq("user_id", ownedItem.publisher_id)
+      .eq("balance", balanceBefore);
 
     if (refundError) {
       console.error(`Failed to refund wallet for item ${ownedItem.id}:`, refundError.message);

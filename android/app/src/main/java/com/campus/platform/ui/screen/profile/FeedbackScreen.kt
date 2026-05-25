@@ -207,8 +207,7 @@ fun FeedbackScreen(
             // ── 提交按钮 ──
             Button(
                 onClick = {
-                    // TODO: get real userId and schoolId from auth/session
-                    viewModel.submit(userId = "current_user", schoolId = "school_id")
+                    viewModel.submit()
                 },
                 enabled = formState.content.isNotBlank() && submitState !is FeedbackSubmitState.Loading,
                 modifier = Modifier

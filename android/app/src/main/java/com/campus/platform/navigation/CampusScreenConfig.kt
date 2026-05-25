@@ -83,21 +83,21 @@ fun campusScreenConfigFor(currentRoute: String?): CampusScreenConfig {
         }
 
         // ── 市集子屏（保留 BottomNav，方便返回） ──
-        currentRoute.startsWith("goods-detail") -> {
+        currentRoute.startsWith("goods-detail") || currentRoute.contains("GoodsDetail") -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,
                 brand = "校园市集", search = "搜索商品、卖家、分类",
             )
         }
 
-        currentRoute.startsWith("lost-detail") -> {
+        currentRoute.startsWith("lost-detail") || currentRoute.contains("LostDetail") -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,
                 brand = "失物招领", search = "搜索失物、地点、时间",
             )
         }
 
-        currentRoute.startsWith("lost-claim") -> {
+        currentRoute.startsWith("lost-claim") || currentRoute.contains("LostClaim") -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,
                 brand = "认领申请", search = "搜索认领规则、问题提示",
@@ -180,7 +180,7 @@ fun campusScreenConfigFor(currentRoute: String?): CampusScreenConfig {
             CampusScreenConfig(showBottomNav = true, showHeroBar = false, brand = "聊天")
         }
 
-        currentRoute.startsWith("announcement-detail") -> {
+        currentRoute.startsWith("announcement-detail") || currentRoute.contains("AnnouncementDetail") -> {
             CampusScreenConfig(
                 showBottomNav = true, showHeroBar = false,
                 brand = "公告详情", search = "搜索公告内容、学校通知",

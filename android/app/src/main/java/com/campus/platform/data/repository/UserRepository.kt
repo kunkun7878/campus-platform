@@ -95,4 +95,28 @@ class UserRepository @Inject constructor(
             entities.map { it.toDto() }
         }
     }
+
+    // ── Admin / Agent ──────────────────────────────────────────
+
+    override suspend fun getUsersBySchool(schoolId: String): List<Profile> {
+        return supabase.postgrest
+            .from("profiles")
+            .select { filter { eq("school_id", schoolId) } }
+            .decodeList<Profile>()
+    }
+
+    override suspend fun getUserById(userId: String): Profile? {
+        return supabase.postgrest
+            .from("profiles")
+            .select { filter { eq("id", userId) } }
+            .decodeSingleOrNull<Profile>()
+    }
+
+    override suspend fun updateUserStatus(userId: String, status: Int) {
+        supabase.postgrest
+            .from("profiles")
+            .update(mapOf("status" to status)) {
+                filter { eq("id", userId) }
+            }
+    }
 }

@@ -5,9 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campus.platform.data.model.Profile
+import com.campus.platform.domain.repository.IUserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +28,7 @@ data class AgentUserDetailState(
 @HiltViewModel
 class AgentUserDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val supabase: SupabaseClient,
+    private val userRepository: IUserRepository,
 ) : ViewModel() {
 
     private val userId: String = savedStateHandle.get<String>("userId") ?: ""
@@ -45,10 +44,7 @@ class AgentUserDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
-                val user = supabase.postgrest
-                    .from("profiles")
-                    .select { filter { eq("id", userId) } }
-                    .decodeSingleOrNull<Profile>()
+                val user = userRepository.getUserById(userId)
                 if (user != null) {
                     _state.value = _state.value.copy(user = user, isLoading = false)
                 } else {
@@ -75,11 +71,7 @@ class AgentUserDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(actionInProgress = true, showBanDialog = false)
             try {
-                supabase.postgrest
-                    .from("profiles")
-                    .update(mapOf("status" to 1)) {
-                        filter { eq("id", userId) }
-                    }
+                userRepository.updateUserStatus(userId, 1)
                 _state.value = _state.value.copy(
                     actionInProgress = false,
                     actionResult = "用户已封禁",
@@ -107,11 +99,7 @@ class AgentUserDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(actionInProgress = true, showUnbanDialog = false)
             try {
-                supabase.postgrest
-                    .from("profiles")
-                    .update(mapOf("status" to 0)) {
-                        filter { eq("id", userId) }
-                    }
+                userRepository.updateUserStatus(userId, 0)
                 _state.value = _state.value.copy(
                     actionInProgress = false,
                     actionResult = "用户已解封",

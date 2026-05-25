@@ -1,5 +1,6 @@
 package com.campus.platform.data.auth
 
+import android.util.Log
 import com.campus.platform.data.model.Profile
 import com.campus.platform.push.FcmTokenManager
 import io.github.jan.supabase.SupabaseClient
@@ -27,6 +28,10 @@ class AuthRepository @Inject constructor(
     private val supabase: SupabaseClient,
     private val fcmTokenManager: FcmTokenManager,
 ) {
+
+    companion object {
+        private const val TAG = "AuthRepository"
+    }
 
     // ── Session ────────────────────────────────────────────
 
@@ -97,6 +102,16 @@ class AuthRepository @Inject constructor(
     /** 手机号 + 密码注册（内部使用虚拟邮箱） */
     suspend fun signUpWithPhoneAndPassword(phone: String, password: String) {
         signUpWithEmail(phoneToEmail(phone), password)
+        val uid = currentUserId()
+        if (uid != null) {
+            try {
+                supabase.postgrest.from("profiles").update(mapOf("phone" to phone)) {
+                    filter { eq("id", uid) }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to update phone", e)
+            }
+        }
     }
 
     // ── 密码管理 ───────────────────────────────────────────

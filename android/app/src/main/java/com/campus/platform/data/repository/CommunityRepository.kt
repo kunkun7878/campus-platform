@@ -9,6 +9,7 @@ import com.campus.platform.data.local.mapper.toEntity
 import com.campus.platform.domain.repository.ICommunityRepository
 import com.campus.platform.domain.repository.ModerationResult
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.postgrest
 import io.ktor.client.plugins.ClientRequestException
@@ -497,6 +498,28 @@ class CommunityRepository @Inject constructor(
         if (local != null) {
             communityDao.upsertPost(local.copy(status = status, reviewReason = reason ?: local.reviewReason))
         }
+
+        // Audit: best-effort moderation_logs INSERT
+        try {
+            val operatorId = supabase.auth.currentUserOrNull()?.id
+            val now = java.time.Instant.now().toString()
+            supabase.postgrest
+                .from("moderation_logs")
+                .insert(
+                    mapOf(
+                        "ref_type" to "community_post",
+                        "ref_id" to postId,
+                        "action" to if (status == "published") "approve" else "hide",
+                        "reason" to (reason ?: "管理员审核: status=$status"),
+                        "operator_id" to (operatorId ?: ""),
+                        "school_id" to (local?.schoolId ?: ""),
+                        "created_at" to now,
+                    )
+                )
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "fallbackUpdatePostStatus moderation_logs insert failed", e)
+            // Non-fatal — main update already succeeded
+        }
     }
 
     override suspend fun updateCommentStatus(commentId: String, status: String, reason: String?) {
@@ -543,6 +566,28 @@ class CommunityRepository @Inject constructor(
         val local = communityDao.getCommentById(commentId)
         if (local != null) {
             communityDao.upsertComment(local.copy(status = status, reviewReason = reason ?: local.reviewReason))
+        }
+
+        // Audit: best-effort moderation_logs INSERT
+        try {
+            val operatorId = supabase.auth.currentUserOrNull()?.id
+            val now = java.time.Instant.now().toString()
+            supabase.postgrest
+                .from("moderation_logs")
+                .insert(
+                    mapOf(
+                        "ref_type" to "community_comment",
+                        "ref_id" to commentId,
+                        "action" to if (status == "published") "approve" else "hide",
+                        "reason" to (reason ?: "管理员审核: status=$status"),
+                        "operator_id" to (operatorId ?: ""),
+                        "school_id" to (local?.schoolId ?: ""),
+                        "created_at" to now,
+                    )
+                )
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "fallbackUpdateCommentStatus moderation_logs insert failed", e)
+            // Non-fatal — main update already succeeded
         }
     }
 

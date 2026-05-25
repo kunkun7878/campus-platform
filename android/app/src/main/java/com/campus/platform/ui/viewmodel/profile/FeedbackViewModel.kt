@@ -2,6 +2,7 @@ package com.campus.platform.ui.viewmodel.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.campus.platform.data.auth.AuthRepository
 import com.campus.platform.data.local.entity.FeedbackEntity
 import com.campus.platform.data.local.mapper.FeedbackDto
 import com.campus.platform.domain.repository.IMiscRepository
@@ -18,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class FeedbackViewModel @Inject constructor(
     private val miscRepository: IMiscRepository,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _formState = MutableStateFlow(FeedbackFormState())
@@ -38,11 +40,13 @@ class FeedbackViewModel @Inject constructor(
         _formState.value = _formState.value.copy(contact = contact)
     }
 
-    fun submit(userId: String, schoolId: String) {
+    fun submit() {
         val state = _formState.value
         if (state.type.isBlank() || state.content.isBlank()) return
 
         viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
+            val schoolId = authRepository.getProfile()?.schoolId ?: ""
             _submitState.value = FeedbackSubmitState.Loading
             try {
                 val feedback = FeedbackDto(
