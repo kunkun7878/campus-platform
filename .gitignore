@@ -21,6 +21,7 @@ Thumbs.db
 
 # Secrets
 *.env
+SESSION_HANDOFF.md
 
 # Temp
 ~$*
